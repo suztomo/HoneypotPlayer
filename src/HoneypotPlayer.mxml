@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
+	initialize="init()"
+    creationComplete="start()"
+   	paddingTop="0" paddingBottom="0"
+    paddingRight="0" paddingLeft="0"
+    >
+
+    <mx:Script source="HoneypotPlayerAction.as"/>
+</mx:Application>
