@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  org.partty.mxml.TelnetPanel
+
+  Copyright (C) 2007-2008 FURUHASHI Sadayuki
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml"
+		xmlns:tty="org.partty.mxml.*"
+		creationComplete="init()"
+		layout="vertical"
+		styleName="terminalPanel"
+	>
+	<mx:Style>
+	<![CDATA[
+		.terminalPanel {
+			color: #0f0f0f;
+			backgroundColor: #000000;
+			headerHeight: 15;
+		}
+		.terminalControlLink {
+			color: #606060;
+			disabledColor: #0f0f0f;
+			selectionColor: #000000;
+			separatorColor: #CCCCC4;
+		}
+	]]>
+	</mx:Style>
+	<mx:Script>
+	<![CDATA[
+		import mx.controls.*;
+		import mx.containers.*;
+		import flash.events.*;
+		import mx.events.*;
+		import mx.core.*;
+
+		public function connect(host:String, port:int):void
+		{
+			telnet.connect(host, port);
+		}
+
+		public function close():void
+		{
+			telnet.close();
+		}
+
+		private function init():void
+		{
+			terminal.addEventListener(KeyboardEvent.KEY_DOWN, keyboardHandler);
+			commandLine.tabEnabled = false;
+			for each(var c:UIComponent in terminalControlLink.getChildren()) {
+				c.tabEnabled = false;
+			}
+		}
+
+		private function keyboardHandler(event:KeyboardEvent):void
+		{
+			switch(event.keyCode) {
+			case Keyboard.UP:
+				telnet.writeByte(0x1b);  // \e
+				telnet.writeByte(0x4f);  // O
+				telnet.writeByte(0x41);  // A
+				break;
+			case Keyboard.DOWN:
+				telnet.writeByte(0x1b);  // \e
+				telnet.writeByte(0x4f);  // O
+				telnet.writeByte(0x42);  // B
+				break;
+			case Keyboard.RIGHT:
+				telnet.writeByte(0x1b);  // \e
+				telnet.writeByte(0x4f);  // O
+				telnet.writeByte(0x43);  // C
+				break;
+			case Keyboard.LEFT:
+				telnet.writeByte(0x1b);  // \e
+				telnet.writeByte(0x4f);  // O
+				telnet.writeByte(0x44);  // D
+				break;
+			default:
+				var code:uint = event.charCode;
+				if(code == 0) { return; }
+				telnet.writeByte(code);
+				break;
+			}
+
+		}
+
+		private var hasCommandLineInput:Boolean = false;
+		private function onCommandLineInput(event:TextEvent):void
+		{
+			hasCommandLineInput = true;
+		}
+		private function onCommandLineKeyUp(event:KeyboardEvent):void {
+			if (event.keyCode == Keyboard.ENTER &&
+					hasCommandLineInput == false) {
+				trace(commandLine.text);
+				if(commandLine.text.length == 0) {
+					// send enter key
+					telnet.writeByte(Keyboard.ENTER);
+				} else {
+					// send text
+					telnet.writeUTFBytes(commandLine.text);
+					commandLine.text = "";
+				}
+			}
+			hasCommandLineInput = false;
+		}
+	]]>
+	</mx:Script>
+	<tty:TelnetService id="telnet"/>
+	<!-- <tty:TelnetService id="telnet" host="localhost" port="23"/> -->
+	<tty:Terminal id="terminal" col="80" row="25" dataProvider="{telnet}"/>
+	<mx:ControlBar><mx:VBox width="100%" horizontalAlign="center">
+
+		<mx:LinkBar id="terminalControlLink" styleName="terminalControlLink"
+			dataProvider="terminalControl"/>
+
+		<mx:ViewStack id="terminalControl" width="100%" minWidth="450">
+
+			<mx:HBox label="Command" width="100%">
+				<mx:TextInput width="100%" id="commandLine"
+					textInput="onCommandLineInput(event)"
+					keyUp="onCommandLineKeyUp(event)"
+					/>
+			</mx:HBox>
+
+			<mx:HBox label="Size" horizontalAlign="center">
+				<mx:Label text="Colmuns" styleName="terminalControlLabel"/>
+				<mx:NumericStepper value="{terminal.col}" minimum="20" maximum="400" id="colmunStepper"
+					change="terminal.col=colmunStepper.value"
+					styleName="terminalControl"/>
+				<mx:Spacer width="10"/>
+				<mx:Label text="Rows" styleName="terminalControlLabel"/>
+				<mx:NumericStepper value="{terminal.row}" minimum="8" maximum="200" id="rowStepper"
+					change="terminal.row=rowStepper.value"
+					styleName="terminalControl"/>
+				<mx:Spacer width="10"/>
+				<mx:Label text="Font size" styleName="terminalControlLabel"/>
+				<mx:NumericStepper value="{terminal.fontSize}" minimum="4" maximum="40" id="fontSizeStepper"
+					change="terminal.fontSize=fontSizeStepper.value"
+					styleName="terminalControl"/>
+			</mx:HBox>
+
+			<mx:HBox label="Color" horizontalAlign="center">
+				<mx:ColorPicker id="fgcolorBlack" showTextField="true"
+					close="{terminal.ansiForegroundBlack=fgcolorBlack.selectedColor}"
+					selectedColor="{terminal.ansiForegroundBlack}"/>
+				<mx:ColorPicker id="fgcolorRed" showTextField="true"
+					close="{terminal.ansiForegroundRed=fgcolorRed.selectedColor}"
+					selectedColor="{terminal.ansiForegroundRed}"/>
+				<mx:ColorPicker id="fgcolorGreen" showTextField="true"
+					close="{terminal.ansiForegroundGreen=fgcolorGreen.selectedColor}"
+					selectedColor="{terminal.ansiForegroundGreen}"/>
+				<mx:ColorPicker id="fgcolorYellow" showTextField="true"
+					close="{terminal.ansiForegroundYellow=fgcolorYellow.selectedColor}"
+					selectedColor="{terminal.ansiForegroundYellow}"/>
+				<mx:ColorPicker id="fgcolorBlue" showTextField="true"
+					close="{terminal.ansiForegroundBlue=fgcolorBlue.selectedColor}"
+					selectedColor="{terminal.ansiForegroundBlue}"/>
+				<mx:ColorPicker id="fgcolorMagenta" showTextField="true"
+					close="{terminal.ansiForegroundMagenta=fgcolorMagenta.selectedColor}"
+					selectedColor="{terminal.ansiForegroundMagenta}"/>
+				<mx:ColorPicker id="fgcolorCyan" showTextField="true"
+					close="{terminal.ansiForegroundCyan=fgcolorCyan.selectedColor}"
+					selectedColor="{terminal.ansiForegroundCyan}"/>
+				<mx:ColorPicker id="fgcolorNormal" showTextField="true"
+					close="{terminal.ansiForegroundNormal=fgcolorNormal.selectedColor}"
+					selectedColor="{terminal.ansiForegroundNormal}"/>
+				<mx:VRule/>
+				<mx:ColorPicker id="bgcolorNormal" showTextField="true"
+					close="{terminal.ansiBackgroundNormal=bgcolorNormal.selectedColor; this.setStyle('backgroundColor', bgcolorNormal.selectedColor)}"
+					selectedColor="{terminal.ansiBackgroundNormal}"/>
+				<mx:ColorPicker id="bgcolorRed" showTextField="true"
+					close="{terminal.ansiBackgroundRed=bgcolorRed.selectedColor}"
+					selectedColor="{terminal.ansiBackgroundRed}"/>
+				<mx:ColorPicker id="bgcolorGreen" showTextField="true"
+					close="{terminal.ansiBackgroundGreen=bgcolorGreen.selectedColor}"
+					selectedColor="{terminal.ansiBackgroundGreen}"/>
+				<mx:ColorPicker id="bgcolorYellow" showTextField="true"
+					close="{terminal.ansiBackgroundYellow=bgcolorYellow.selectedColor}"
+					selectedColor="{terminal.ansiBackgroundYellow}"/>
+				<mx:ColorPicker id="bgcolorBlue" showTextField="true"
+					close="{terminal.ansiBackgroundBlue=bgcolorBlue.selectedColor}"
+					selectedColor="{terminal.ansiBackgroundBlue}"/>
+				<mx:ColorPicker id="bgcolorMagenta" showTextField="true"
+					close="{terminal.ansiBackgroundMagenta=bgcolorMagenta.selectedColor}"
+					selectedColor="{terminal.ansiBackgroundMagenta}"/>
+				<mx:ColorPicker id="bgcolorCyan" showTextField="true"
+					close="{terminal.ansiBackgroundCyan=bgcolorCyan.selectedColor}"
+					selectedColor="{terminal.ansiBackgroundCyan}"/>
+				<mx:ColorPicker id="bgcolorWhite" showTextField="true"
+					close="{terminal.ansiBackgroundWhite=bgcolorWhite.selectedColor}"
+					selectedColor="{terminal.ansiBackgroundWhite}"/>
+			</mx:HBox>
+
+			<mx:HBox label="System" horizontalAlign="center">
+				<mx:Script>
+				<![CDATA[
+					[Bindable]
+					private var charsets:Array = new Array(
+						"utf-8",
+						"euc-jp",
+						"shift_jis",
+						"big5",
+						"gb2312",
+						"KSC5601",
+						"euc-kr"
+					);
+				]]>
+				</mx:Script>
+				<mx:Label text="Encoding" styleName="terminalControlLabel"/>
+				<mx:ComboBox dataProvider="{charsets}" width="100" id="charSetSelector"
+					close="terminal.charSet=String(charSetSelector.selectedItem)"
+					styleName="terminalControl"
+					/>
+				<mx:Spacer width="10"/>
+				<mx:Button label="disconnect" click="close(); telnet.dispatchEvent(new Event(Event.CLOSE));"/>
+			</mx:HBox>
+
+		</mx:ViewStack>
+
+	</mx:VBox></mx:ControlBar>
+</mx:Panel>
+

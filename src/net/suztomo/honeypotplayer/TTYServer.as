@@ -35,13 +35,10 @@ package net.suztomo.honeypotplayer
 		private function onConnect(event:Event):void
 		{
 			trace("onConnect");
-			_socket.writeUTF("Hello");
-			_socket.flush();
 		}
 		
 		private function onDataArrived(event:ProgressEvent):void
 		{
-			trace("onDataArraived");
 			var bytes:ByteArray = new ByteArray();
 			_socket.readBytes(bytes);
 			processData(bytes);
@@ -49,7 +46,14 @@ package net.suztomo.honeypotplayer
 		
 		private function processData(bytes:ByteArray):void
 		{
-			trace(bytes);
+			var s:String = "";
+			for (var i:int=0; i<bytes.length; ++i) {
+				var b:uint = bytes.readUnsignedByte();
+				if (b <= 0xF)
+					s += "0";
+				s += b.toString(16) + "|";
+			}
+			trace(s);
 		}
 			
 		private function onIOError(ioevent:IOErrorEvent):void
