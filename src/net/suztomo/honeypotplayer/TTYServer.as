@@ -3,6 +3,7 @@ package net.suztomo.honeypotplayer
 	import flash.events.*;
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
+	import flash.utils.Endian;
 	
 	
 	public class TTYServer extends EventDispatcher
@@ -13,6 +14,7 @@ package net.suztomo.honeypotplayer
 		private var _honeypotPlayer:HoneypotPlayerMaster;
 		private var _socket:Socket;
 		private var bytes:ByteArray;
+		private var block_cursor:uint = 0;
 		
 		public function TTYServer(serverName:String, serverPort:int = 8081)
 		{
@@ -50,7 +52,8 @@ package net.suztomo.honeypotplayer
 		private function printBytes(bytes:ByteArray):void
 		{
 			var s:String = "";
-			for (var i:int=0; i<bytes.length; ++i) {
+			trace("Position / Length = " + String(bytes.position) + " / " + String(bytes.length));
+			for (var i:int=bytes.position; i<bytes.length; ++i) {
 				var b:uint = bytes.readUnsignedByte();
 				if (b <= 0xF)
 					s += "0";
@@ -63,18 +66,72 @@ package net.suztomo.honeypotplayer
 		{
 			/*
 				ByteArray.readByts(*,*, length=0) means all available data to read.
+				
+				| block1  | block2      | bloo(not all bytes are arrived yet) oo.|
+				                        | <- block_cursor
+				| copied to dest        | copied to new_bytes                    |
 			*/
 			var src:ByteArray = bytes;
+			var new_bytes:ByteArray = new ByteArray;
 			src.position = 0;
-			src.readBytes(dest);
+			if (src.bytesAvailable < block_cursor) {
+				trace("Wrong block_cursor. availableBytes, block_cursor = " + String(src.bytesAvailable) + ", " + String(block_cursor));
+			}
+			src.readBytes(dest, 0, block_cursor);
+			src.readBytes(new_bytes);
 			trace(dest.endian);
 			src.clear();
+			bytes = new_bytes;
+			block_cursor = 0;
 		}
 		
 		private function processData(_bytes:ByteArray):void
 		{
+			bytes.position = bytes.length;
 			bytes.writeBytes(_bytes);
-			trace("bytes of TTYServer length is " + String(bytes.length));
+			trace("bytes of TTYServer length : " + String(bytes.length));
+			var bs:int; // compensation for 1 + 4
+			var ok:Boolean = false;
+			/*
+				Avoid to split bytes that will be processed readAllBytes
+				block_cursor points the head of the most recent block.
+			*/
+			
+			if (bytes.length < 200) {
+				bytes.position = 0;
+				printBytes(bytes);
+			}
+			
+			while (true) {
+				bytes.position = block_cursor + 1;
+				bytes.endian = Endian.LITTLE_ENDIAN;
+				if (bytes.bytesAvailable < 4) {
+					break;
+				}
+				
+				bs = bytes.readUnsignedInt();
+				trace("block_cursor / bs : " + String(block_cursor) + ", " + String(bs));
+				if (bs <= bytes.bytesAvailable) {
+					ok = true;
+				}
+				/*
+					The left size of current block is bs
+					The entire size of current block is 1 + 4
+				*/
+				if (block_cursor + bs + 5 < bytes.length) {
+					block_cursor += bs + 5; // points next block
+				} else {
+					break;
+				}
+			}
+			if (ok) {
+				trace("Dispatches ProgressEvent / TTYServer : " + String(bytes.length));
+				dispatchProgressEvent();
+			}
+		}
+		
+		private function dispatchProgressEvent():void
+		{
 			dispatchEvent(new Event(ProgressEvent.PROGRESS));
 		}
 		

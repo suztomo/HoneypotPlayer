@@ -57,6 +57,7 @@ public class Terminal extends UIComponent implements IDataOutput
 
 	private function dataHandler(event:ProgressEvent):void
 	{
+		trace("ProgressEvent Now!");
 		var buffer:ByteArray = _buffer;
 		event.target.readBytes(buffer);
 		writeBytes(buffer);

@@ -72,15 +72,17 @@ package net.suztomo.honeypotplayer
 			bytes.position += bytes.bytesAvailable;
 			bytes.writeBytes(_bytes, offset, length);
 			bytes.position = prev_position;	
+			trace("appended : " + String(bytes.bytesAvailable));
+			trace("readBytes() / HoneypotTTY (length, position, avail) " + String(bytes.length) + ", " + String(bytes.position) + ", " + String(bytes.bytesAvailable));
 		}
-
 
 		/*
 			Readbytes is called from mxml.Terminal.
 		*/
-		public function readBytes(bytes:ByteArray, offset:uint=0, length:uint=0):void
+		public function readBytes(_bytes:ByteArray, offset:uint=0, length:uint=0):void
 		{
-			return bytes.readBytes(bytes, offset, length);
+			trace("readBytes() / HoneypotTTY (length, position, avail) " + String(bytes.length) + ", " + String(bytes.position) + ", " + String(bytes.bytesAvailable));
+			return bytes.readBytes(_bytes, offset, length);
 		}
 		
 		public function readBoolean():Boolean
