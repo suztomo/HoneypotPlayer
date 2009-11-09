@@ -79,7 +79,6 @@ package net.suztomo.honeypotplayer
 			}
 			src.readBytes(dest, 0, block_cursor);
 			src.readBytes(new_bytes);
-			trace(dest.endian);
 			src.clear();
 			bytes = new_bytes;
 			block_cursor = 0;
@@ -89,7 +88,6 @@ package net.suztomo.honeypotplayer
 		{
 			bytes.position = bytes.length;
 			bytes.writeBytes(_bytes);
-			trace("bytes of TTYServer length : " + String(bytes.length));
 			var bs:int; // compensation for 1 + 4
 			var ok:Boolean = false;
 			/*
@@ -110,7 +108,9 @@ package net.suztomo.honeypotplayer
 				}
 				
 				bs = bytes.readUnsignedInt();
-				trace("block_cursor / bs : " + String(block_cursor) + ", " + String(bs));
+				if (bs > 100000) {
+				    trace("block_cursor / bs : " + String(block_cursor) + ", " + String(bs));
+				}
 				if (bs <= bytes.bytesAvailable) {
 					ok = true;
 				}
@@ -125,7 +125,6 @@ package net.suztomo.honeypotplayer
 				}
 			}
 			if (ok) {
-				trace("Dispatches ProgressEvent / TTYServer : " + String(bytes.length));
 				dispatchProgressEvent();
 			}
 		}

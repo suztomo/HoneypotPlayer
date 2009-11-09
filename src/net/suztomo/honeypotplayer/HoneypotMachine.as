@@ -34,7 +34,6 @@ package net.suztomo.honeypotplayer
 			}
 			var prev_position:uint = bytes.position;
 			tty_name = bytes.readMultiByte(7, "utf-8");
-			trace("After readMultiBytes, bytesAvailable is " + String(bytes.bytesAvailable));
 			var t:HoneypotTTY = ttys[tty_name];
 			if (!t) {
 				t = createTTY(tty_name);

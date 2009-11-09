@@ -18,7 +18,7 @@ package net.suztomo.honeypotplayer
 		{
 			machines = new Object();
 			bytes = new ByteArray();
-			ttyserver = new TTYServer("192.168.124.185", 8080);
+			ttyserver = new TTYServer("127.0.0.1", 8080);
 //			ttyserver = new TTYServer("127.0.0.1", 8081);
 			ttyserver.connect();
 			addDataProvider(ttyserver);
@@ -64,12 +64,9 @@ package net.suztomo.honeypotplayer
 						+ String(bytes.bytesAvailable));
 					break;
 				}
-				trace("going to read! / processBytes on HoneyotPlayerMaster");
-				trace(bytes.endian);
 				bytes.endian = 	Endian.LITTLE_ENDIAN;
 				var kind:uint = bytes.readUnsignedByte();
 				var size:uint = bytes.readUnsignedInt();
-				trace("kind " + String(kind) + ", size " + String(size));
 
 				if (bytes.bytesAvailable < size) {
 					trace("wrong size header / HoneypotPlayerMaster.processBytes");
@@ -81,14 +78,10 @@ package net.suztomo.honeypotplayer
 				copied_bytes.endian = Endian.LITTLE_ENDIAN;
 				bytes.readBytes(copied_bytes, 0, size);
 				copied_bytes.position = 0;
-				trace("good size header. copied_bytes's length is " + String(copied_bytes.length));
-				trace("copied_bytes's bytesAvailable is " + String(copied_bytes.bytesAvailable));
 				switch(kind) {
 					case 0:
-						trace("case 0");
 						break;
 					case MESSAGE_TTY_OUTPUT:	
-						trace("case 1");
 						processTTYData(copied_bytes);
 						break;
 					default:
@@ -113,7 +106,6 @@ package net.suztomo.honeypotplayer
 			The bytes should be properly set.
 		*/
 		private function processTTYData(bytes:ByteArray) :void {	
-			trace("ttydata processing!");
 			var hp_node:uint;
 			var tty_output_bytes:ByteArray;
 			if (bytes.bytesAvailable <= HEADER_SIZEOF_HPNODE + HEADER_SIZEOF_TTYNAME
@@ -123,8 +115,6 @@ package net.suztomo.honeypotplayer
 			}
 			
 			hp_node = bytes.readUnsignedInt();
-			trace("hp_node " + String(hp_node) + " bytesAvailable: " + String(bytes.bytesAvailable)
-				+ "HoneypotPlayerMaster.processTTYData()");
 			var m:HoneypotMachine = machines[hp_node];
 			if (!m) {
 				m = createMachine(hp_node);

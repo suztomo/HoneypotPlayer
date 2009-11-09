@@ -41,21 +41,23 @@ package net.suztomo.honeypotplayer
 			
 			The endian of the bytes should be properly set before the call.
 		*/
-		public function writeBytes(_bytes:ByteArray, offset:uint=0, length:uint=0) :void
+		public function writeBytes(src:ByteArray, offset:uint=0, length:uint=0) :void
 		{
 			var sec:uint, msec:uint, size:uint;
-			if (_bytes.bytesAvailable < 12) {
-				trace("Wrong byte length " + String(_bytes.bytesAvailable) + " / HoneypotTTY.writeBytes()");
+			if (src.bytesAvailable < 12) {
+				trace("Wrong byte length " + String(src.bytesAvailable) + " / HoneypotTTY.writeBytes()");
 			}
-			sec = _bytes.readUnsignedInt(); // unused
-			msec = _bytes.readUnsignedInt(); // unused
-			size = _bytes.readUnsignedInt();
-			trace("sec " + String(sec) + ", msec " + String(msec) + ", ttydatasize " + String(size));
-			if (_bytes.bytesAvailable != size) {
+			sec = src.readUnsignedInt(); // unused
+			msec = src.readUnsignedInt(); // unused
+			size = src.readUnsignedInt();
+			if (sec > 1000 || msec > 1000 || size > 1000) {
+				trace("sec " + String(sec) + ", msec " + String(msec) + ", ttydatasize " + String(size));
+			}
+			if (src.bytesAvailable != size) {
 				trace("TTY bytes does not have equal length");
 				return;
 			}
-			appendBytes(_bytes, 0, size);
+			appendBytes(src);
 			var ev:Event = new ProgressEvent(
 				ProgressEvent.PROGRESS,
 				false,
@@ -66,23 +68,29 @@ package net.suztomo.honeypotplayer
 			dispatchEvent(ev);
 		}
 		
-		private function appendBytes(_bytes:ByteArray, offset:uint = 0, length:uint=0) :void
+		private function appendBytes(src:ByteArray) :void
 		{
 			var prev_position:uint = bytes.position;
+			
 			bytes.position += bytes.bytesAvailable;
-			bytes.writeBytes(_bytes, offset, length);
+			trace("src.bytesAvailable: " + String(src.bytesAvailable));
+			bytes.writeBytes(src, src.position, src.bytesAvailable);
+
+			trace("bytes.length: " + String(bytes.length));
 			bytes.position = prev_position;	
-			trace("appended : " + String(bytes.bytesAvailable));
-			trace("readBytes() / HoneypotTTY (length, position, avail) " + String(bytes.length) + ", " + String(bytes.position) + ", " + String(bytes.bytesAvailable));
+			for (var i:int = bytes.position; i<bytes.length; ++i) {
+				var c:uint = bytes[i];
+				trace(i +  " : " + c);
+			}
 		}
 
 		/*
 			Readbytes is called from mxml.Terminal.
 		*/
-		public function readBytes(_bytes:ByteArray, offset:uint=0, length:uint=0):void
+		public function readBytes(dest:ByteArray, offset:uint=0, length:uint=0):void
 		{
-			trace("readBytes() / HoneypotTTY (length, position, avail) " + String(bytes.length) + ", " + String(bytes.position) + ", " + String(bytes.bytesAvailable));
-			return bytes.readBytes(_bytes, offset, length);
+			trace("bytes.length / readBytes: " + String(bytes.length));
+			return bytes.readBytes(dest, offset, length);
 		}
 		
 		public function readBoolean():Boolean
