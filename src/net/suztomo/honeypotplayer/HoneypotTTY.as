@@ -71,17 +71,9 @@ package net.suztomo.honeypotplayer
 		private function appendBytes(src:ByteArray) :void
 		{
 			var prev_position:uint = bytes.position;
-			
-			bytes.position += bytes.bytesAvailable;
-			trace("src.bytesAvailable: " + String(src.bytesAvailable));
+						bytes.position += bytes.bytesAvailable;
 			bytes.writeBytes(src, src.position, src.bytesAvailable);
-
-			trace("bytes.length: " + String(bytes.length));
 			bytes.position = prev_position;	
-			for (var i:int = bytes.position; i<bytes.length; ++i) {
-				var c:uint = bytes[i];
-				trace(i +  " : " + c);
-			}
 		}
 
 		/*
@@ -89,7 +81,6 @@ package net.suztomo.honeypotplayer
 		*/
 		public function readBytes(dest:ByteArray, offset:uint=0, length:uint=0):void
 		{
-			trace("bytes.length / readBytes: " + String(bytes.length));
 			return bytes.readBytes(dest, offset, length);
 		}
 		

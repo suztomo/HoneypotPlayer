@@ -18,7 +18,7 @@ package net.suztomo.honeypotplayer
 		{
 			machines = new Object();
 			bytes = new ByteArray();
-			ttyserver = new TTYServer("127.0.0.1", 8080);
+			ttyserver = new TTYServer("192.168.124.188", 8080);
 //			ttyserver = new TTYServer("127.0.0.1", 8081);
 			ttyserver.connect();
 			addDataProvider(ttyserver);
@@ -130,6 +130,10 @@ package net.suztomo.honeypotplayer
 			machines[hp_node] = m;
 			addChild(m);
 			return m;
+		}
+		
+		public function shutdown():void {
+			ttyserver.close();
 		}
 	}
 }

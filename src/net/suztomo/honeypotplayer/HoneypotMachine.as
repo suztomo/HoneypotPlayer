@@ -28,12 +28,19 @@ package net.suztomo.honeypotplayer
 		public function writeBytesToTTY(bytes:ByteArray, offset:uint=0, length:uint=0):void
 		{
 			var tty_name:String;
-			if (bytes.bytesAvailable < 23) {
+			if (bytes.bytesAvailable < 7 + 4 + 4 + 4) {
 				trace("Wrong byte length " + String(bytes.bytesAvailable) + " / HoneypotMachine.writeBytesToTTY()");
 				return;
 			}
 			var prev_position:uint = bytes.position;
 			tty_name = bytes.readMultiByte(7, "utf-8");
+			
+			/*
+				Only pseudo terminal slave, not master.
+			*/
+			if (tty_name.substr(0, 3) != "pts") {
+				return;
+			}
 			var t:HoneypotTTY = ttys[tty_name];
 			if (!t) {
 				t = createTTY(tty_name);

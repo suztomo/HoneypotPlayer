@@ -1,10 +1,9 @@
 // ActionScript file
 // ActionScript file
-import flash.utils.ByteArray;
+import flash.events.Event;
 
 import mx.controls.Button;
 import mx.core.UIComponent;
-
 import net.suztomo.honeypotplayer.*;
 
 import org.partty.*;
@@ -53,4 +52,11 @@ public function start():void
 	terminal.scaleY = 0.1;
 	terminal.scaleX = 0.1;
 */		
+}
+
+public function exitingHandler(exitingEvent:Event):void {
+	trace("Ending");
+	if (hpmaster) {
+		hpmaster.shutdown();
+	}
 }

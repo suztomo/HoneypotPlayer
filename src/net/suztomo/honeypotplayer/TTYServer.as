@@ -40,6 +40,7 @@ package net.suztomo.honeypotplayer
 		private function onConnect(event:Event):void
 		{
 			trace("onConnect");
+			sendAck();
 		}
 		
 		private function onDataArrived(event:ProgressEvent):void
@@ -47,6 +48,12 @@ package net.suztomo.honeypotplayer
 			var bytes:ByteArray = new ByteArray();
 			_socket.readBytes(bytes);
 			processData(bytes);
+			sendAck();
+		}
+
+		private function sendAck():void
+		{
+			_socket.writeUTFBytes("ok");
 		}
 
 		private function printBytes(bytes:ByteArray):void
@@ -91,14 +98,14 @@ package net.suztomo.honeypotplayer
 			var bs:int; // compensation for 1 + 4
 			var ok:Boolean = false;
 			/*
-				Avoid to split bytes that will be processed readAllBytes
-				block_cursor points the head of the most recent block.
-			*/
-			
+				Variable ok is to avoid splitting bytes that will be processed readAllBytes
+				Variable block_cursor points the head of the most recent block.
+
 			if (bytes.length < 200) {
 				bytes.position = 0;
 				printBytes(bytes);
 			}
+			*/
 			
 			while (true) {
 				bytes.position = block_cursor + 1;
@@ -117,6 +124,8 @@ package net.suztomo.honeypotplayer
 				/*
 					The left size of current block is bs
 					The entire size of current block is 1 + 4
+					|kind|  size  |
+					| 1  |   4    |
 				*/
 				if (block_cursor + bs + 5 < bytes.length) {
 					block_cursor += bs + 5; // points next block
@@ -126,6 +135,8 @@ package net.suztomo.honeypotplayer
 			}
 			if (ok) {
 				dispatchProgressEvent();
+			} else {
+				trace("not ok");
 			}
 		}
 		
@@ -155,6 +166,13 @@ package net.suztomo.honeypotplayer
 			_socket.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onError);
 			_socket.addEventListener(IOErrorEvent.IO_ERROR, onIOError);
 			_socket.addEventListener(Event.CLOSE, onClose);
+		}
+
+		public function close() :void {
+			if (connected()) {
+				trace("closing socket");
+				_socket.close();
+			}
 		}
 
 	}
