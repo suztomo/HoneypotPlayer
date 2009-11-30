@@ -4,6 +4,7 @@ package models.events
 
 	public class HoneypotEvent extends Event
 	{
+		static public const TYPE:String = "HonepotEvent";
 
 		/**
 		 * Event type for when a new host is created. 
@@ -27,10 +28,13 @@ package models.events
 
 		public var message:HoneypotEventMessage;
 
-		public function HoneypotEvent(type:String, m:HoneypotEventMessage)
+		public var kind:String;
+
+		public function HoneypotEvent(k:String, m:HoneypotEventMessage)
 		{
-			super(type);
+			super(TYPE);
 			message = m;
+			kind = k; 
 		}
 		
 	}

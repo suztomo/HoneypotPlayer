@@ -1,24 +1,38 @@
 package controllers
 {
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.events.ProgressEvent;
+	import flash.utils.ByteArray;
+	import flash.utils.Endian;
 	
 	import models.*;
+	import models.events.*;
 	import models.network.Block;
 	import models.network.HoneypotServer;
-	import models.events.*;
-	public class BlockProcessor extends EventDispatcher
+
+	public class BlockProcessor extends HoneypotEventDispatcher
 	{
 		private var server:HoneypotServer;
 		private var machines:Object; // Map of (id => HoneypotMachine).
+		private var messages:Array;
+		public const MESSAGE_TTY_OUTPUT:uint = 0;
 		
 		public function BlockProcessor(serverName:String, serverPort:uint)
 		{
 			machines = new Object(); // assoc array
 			server = new HoneypotServer(serverName, serverPort);
 			server.addEventListener(ProgressEvent.PROGRESS, dataHandler);
+			messages = new Array();
+		}
+		
+		public override function run():void
+		{
+			server.connect();
 		}
 
 		private function dataHandler(event:Event) :void{
+			var bytes:ByteArray = new ByteArray();
 			event.target.readAllBytes(bytes);
 			bytes.position = 0;
 			processBytes(bytes);
@@ -60,8 +74,8 @@ package controllers
 				switch(kind) {
 					case 0:
 						break;
-					case MESSAGE_TTY_OUTPUT:	
-						processTTYData(copied_bytes);
+					case MESSAGE_TTY_OUTPUT:
+						processTTYData(block);
 						break;
 					default:
 						trace("Undefined block type");
@@ -97,10 +111,8 @@ package controllers
 			}
 			
 			hp_node = bytes.readUnsignedInt(); // hp_node
-			var m:HoneypotMachine = machines[hp_node];
-			if (!m) {
-				m = createMachine(hp_node);
-			}
+			var hostname:String = "host_" + String(hp_node);
+			
 			if (bytes.bytesAvailable < 7 + 4 + 4 + 4) {
 				trace("Wrong byte length " + String(bytes.bytesAvailable) + " / HoneypotMachine.writeBytesToTTY()");
 				return;
@@ -117,40 +129,40 @@ package controllers
 				
 			}
 
-			if (src.bytesAvailable < 4 + 4 + 4) {
-				trace("Wrong byte length " + String(src.bytesAvailable) + " / HoneypotTTY.writeBytes()");
+			if (bytes.bytesAvailable < 4 + 4 + 4) {
+				trace("Wrong byte length " + String(bytes.bytesAvailable) + " / HoneypotTTY.writeBytes()");
 			}
-			sec = src.readUnsignedInt(); // unused
-			msec = src.readUnsignedInt(); // unused
-			size = src.readUnsignedInt(); 
+			sec = bytes.readUnsignedInt(); // unused
+			msec = bytes.readUnsignedInt(); // unused
+			size = bytes.readUnsignedInt(); 
 			if (sec > 1000 || msec > 1000 || size > 1000) {
 				trace("sec " + String(sec) + ", msec " + String(msec) + ", ttydatasize " + String(size));
 			}
-			if (src.bytesAvailable != size) {
+			if (bytes.bytesAvailable != size) {
 				trace("TTY bytes does not have equal length");
 				return;
 			}
 			
+			/* To record the events, just aligh this messages according to time */
 			var message:HoneypotEventMessage = new HoneypotEventMessage(
-				HoneypotEvent.HOST_TERM_INPUT,
-				sec, msec, bytes
+				HoneypotEvent.HOST_TERM_INPUT
 			);
+			
+			message.buildTermInputMessage(hostname, tty_name, bytes);
 			
 			var ev:HoneypotEvent = new HoneypotEvent(HoneypotEvent.HOST_TERM_INPUT, message);
 			dispatchEvent(ev);
 		}
 		
-		private function createMachine(hp_node:uint) :HoneypotMachine{
-			var m:Host = new Host(hp_node, String(hp_node));
-			machines[hp_node] = m;
-			addChild(m);
-			m.appear();
-			return m;
-		}
-		
-		public function shutdown():void {
+		public override function shutdown():void {
 			server.close();
 		}
-
+		
+		/* Record the message to replay the messages afterwards */
+		private function recordMessage(sec:uint, msec:uint, message:HoneypotEventMessage):void
+		{
+			messages.push(message);
+			return;
+		}
 	}
 }

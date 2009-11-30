@@ -4,6 +4,7 @@ package net.suztomo.honeypotplayer
 	import flash.events.ProgressEvent;
 	import flash.utils.ByteArray;
 	import flash.utils.IDataInput;
+	import flash.utils.Endian;
 	
 	import mx.core.UIComponent;
 	

@@ -21,7 +21,7 @@ package views
 		public static var count:int = 0;
 		public function Terminal(_tty_name:String)
 		{
-			terminal = new Terminal();
+			terminal = new org.partty.mxml.Terminal();
 			addChild(terminal);
 			tty_name = _tty_name;
 
@@ -34,7 +34,7 @@ package views
 		}
 		public function writeBytes(src:ByteArray, offset:uint=0, length:uint=0) :void
 		{
-			bytes.writebytes(src, offset, length);
+			bytes.writeBytes(src, offset, length);
 			appendBytes(src);
 			var ev:Event = new ProgressEvent(
 				ProgressEvent.PROGRESS,

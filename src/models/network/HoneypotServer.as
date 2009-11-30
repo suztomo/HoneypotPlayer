@@ -10,7 +10,6 @@ package models.network
 		private var _serverName:String = "127.0.0.1";
 		private var _serverPort:int = 8081;
 		private var _isConnected:Boolean = false;
-		private var _honeypotPlayer:HoneypotPlayerMaster;
 		private var _socket:Socket;
 		private var bytes:ByteArray;
 		private var block_cursor:uint = 0;
@@ -22,13 +21,16 @@ package models.network
 			_socket = new Socket();
 			prepareEvents();
 			bytes = new ByteArray();
+			trace("HoneypotServer instance is created");
 		}
 		public function connect():void
 		{
+			trace("connecting...");
 			if (connected()) {
 				trace("Already connected");
 			}
 			_socket.connect(_serverName, _serverPort);
+			trace("connected!");
 		}
 
 		public function connected():Boolean

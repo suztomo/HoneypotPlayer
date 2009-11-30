@@ -13,12 +13,16 @@
 
 	<mx:Script>
 		<![CDATA[
+			import controllers.CanvasPlayer;
 			import views.*;
+			
+			private var player:CanvasPlayer;
 			private function handleApplicationComplete(event: Event): void {
 				
-				//start();
 				var cf:ConnectionForm = new ConnectionForm();
 				canvas.addChild(cf);
+				startCanvasPlayer();
+				
 			}
 		]]>
 	</mx:Script>
