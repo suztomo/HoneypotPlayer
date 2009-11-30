@@ -22,7 +22,7 @@ package models.events
 
 		/* term input */
 		public var ttyname:String;
-		public var bytes: ByteArray;
+		public var ttyoutput: ByteArray;
 		
 		/* hosts are connected */
 		public var host1:String;
@@ -39,7 +39,7 @@ package models.events
 		{
 			hostname = h;
 			ttyname = t;
-			bytes = b;
+			ttyoutput = b;
 		}
 		
 		public function setHost(h:String):void

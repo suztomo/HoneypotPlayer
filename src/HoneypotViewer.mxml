@@ -5,10 +5,10 @@
    	paddingTop="0" paddingBottom="0"
     paddingRight="0" paddingLeft="0"
     closing="exitingHandler(event);"
-    minHeight="200"
+    minHeight="600"
+    minWidth="800"
     xmlns:views="views.*">
-	<mx:Canvas id="canvas" width="100%" height="100%" backgroundColor="#FFFFFF">
-	</mx:Canvas>
+	<mx:Canvas id="canvas" width="100%" height="100%" backgroundColor="#FFFFFF" />
     <mx:Script source="HoneypotViewerAction.as"/>
 
 	<mx:Script>
@@ -20,6 +20,7 @@
 			private function handleApplicationComplete(event: Event): void {
 				
 				var cf:ConnectionForm = new ConnectionForm();
+
 				canvas.addChild(cf);
 				startCanvasPlayer();
 				

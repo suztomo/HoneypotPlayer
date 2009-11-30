@@ -61,12 +61,14 @@ package models.network
 		{
 			var s:String = "";
 			trace("Position / Length = " + String(bytes.position) + " / " + String(bytes.length));
+			var position:uint = bytes.position;
 			for (var i:int=bytes.position; i<bytes.length; ++i) {
 				var b:uint = bytes.readUnsignedByte();
 				if (b <= 0xF)
 					s += "0";
 				s += b.toString(16) + "|";
 			}
+			bytes.position = position;
 			trace(s);			
 		}
 		
@@ -83,8 +85,10 @@ package models.network
 			var new_bytes:ByteArray = new ByteArray;
 			src.position = 0;
 			if (src.bytesAvailable < block_cursor) {
-				trace("Wrong block_cursor. availableBytes, block_cursor = " + String(src.bytesAvailable) + ", " + String(block_cursor));
+				trace("Wrong block_cursor. availableBytes, block_cursor = " 
+					+ String(src.bytesAvailable) + ", " + String(block_cursor));
 			}
+			printBytes(src);
 			src.readBytes(dest, 0, block_cursor);
 			src.readBytes(new_bytes);
 			src.clear();

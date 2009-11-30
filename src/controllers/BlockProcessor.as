@@ -16,7 +16,7 @@ package controllers
 		private var server:HoneypotServer;
 		private var machines:Object; // Map of (id => HoneypotMachine).
 		private var messages:Array;
-		public const MESSAGE_TTY_OUTPUT:uint = 0;
+		public const MESSAGE_TTY_OUTPUT:uint = 1;
 		
 		public function BlockProcessor(serverName:String, serverPort:uint)
 		{

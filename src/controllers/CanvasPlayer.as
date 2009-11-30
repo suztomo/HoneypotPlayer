@@ -1,7 +1,7 @@
 package controllers
 {
 	import flash.events.Event;
-	import flash.events.EventDispatcher;
+	import flash.utils.ByteArray;
 	
 	import models.events.*;
 	
@@ -47,9 +47,10 @@ package controllers
 
 		private function onHoneypotEvent(ev:HoneypotEvent):void
 		{
-			switch(ev.type) {
+			var hostname:String;
+			switch(ev.kind) {
 				case HoneypotEvent.HOST_CREATED:
-					var hostname:String = ev.message.hostname;
+					hostname = ev.message.hostname;
 					manager.createHost(hostname);
 					break;
 				case HoneypotEvent.HOST_DESTROYED:
@@ -57,6 +58,10 @@ package controllers
 				case HoneypotEvent.HOST_INVADED:
 					break;
 				case HoneypotEvent.HOST_TERM_INPUT:
+					hostname = ev.message.hostname;
+					var ttyname:String = ev.message.ttyname;
+					var data:ByteArray = ev.message.ttyoutput;
+					manager.sendTermInput(hostname, ttyname, data);
 					break;
 				default:
 					trace("Undefined type of HoneypotEvent");

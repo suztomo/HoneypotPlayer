@@ -56,11 +56,17 @@ package controllers
 			host.writeTTY(ttyname, data);
 		}
 		
+		/*
+			Finds fonts using its name.
+			If the host does not exist, creates a host with the name.
+		*/
 		public function findHost(hostname:String):Host
 		{
 			var h:Host = hosts[hostname];
-			if (h is null) {
-				return null;
+			if (h == null) {
+				/* Yasashisa */
+				createHost(hostname);
+				h = hosts[hostname];
 			}
 			return h;
 		}
