@@ -41,8 +41,6 @@ package controllers
 		
 		private function onProcessEvent(event:Event) :void
 		{
-			trace("onProcessEvent / CanvasPlayer");
-			trace(event);
 		}
 
 		private function onHoneypotEvent(ev:HoneypotEvent):void

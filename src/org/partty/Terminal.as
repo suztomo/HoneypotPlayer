@@ -688,7 +688,6 @@ public class Terminal extends Sprite implements IDataOutput
 			cursorDirty = true;
 			return;
 		case 0x0a:  // line feed
-			trace("line feed");
 			cursorLineDown();
 
 			ccol = 0; // ?

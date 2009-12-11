@@ -112,7 +112,6 @@ package controllers
 			
 			hp_node = bytes.readUnsignedInt(); // hp_node
 			var hostname:String = "host_" + String(hp_node);
-			
 			if (bytes.bytesAvailable < 7 + 4 + 4 + 4) {
 				trace("Wrong byte length " + String(bytes.bytesAvailable) + " / HoneypotMachine.writeBytesToTTY()");
 				return;
@@ -134,12 +133,15 @@ package controllers
 			}
 			sec = bytes.readUnsignedInt(); // unused
 			msec = bytes.readUnsignedInt(); // unused
-			size = bytes.readUnsignedInt(); 
-			if (sec > 1000 || msec > 1000 || size > 1000) {
-				trace("sec " + String(sec) + ", msec " + String(msec) + ", ttydatasize " + String(size));
+			size = bytes.readUnsignedInt();
+			if (sec > 1000 || msec > 1000000 || size > 1000) {
+				trace("wrong: sec " + String(sec) + ", msec " + String(msec) + ", ttydatasize " + String(size));
+/*				bytes.position -= 23;
+				printBytes(bytes);*/
 			}
 			if (bytes.bytesAvailable != size) {
-				trace("TTY bytes does not have equal length");
+				trace("TTY bytes(" + bytes.bytesAvailable + ") does not have equal length with size(" +
+					size +")");
 				return;
 			}
 			
@@ -164,5 +166,21 @@ package controllers
 			messages.push(message);
 			return;
 		}
+		
+		private function printBytes(bytes:ByteArray):void
+		{
+			var s:String = "";
+			trace("Position / Length = " + String(bytes.position) + " / " + String(bytes.length) );
+			var position:uint = bytes.position;
+			for (var i:int=bytes.position; i<bytes.length; ++i) {
+				var b:uint = bytes.readUnsignedByte();
+				if (b <= 0xF)
+					s += "0";
+				s += b.toString(16) + "|";
+			}
+			bytes.position = position;
+			trace(s);			
+		}
+
 	}
 }

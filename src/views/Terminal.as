@@ -54,6 +54,10 @@ package views
 			bytes.position = prev_position;	
 		}
 
+		public function set scale(x:Number):void
+		{
+			scaleX = scaleY = x;
+		}
 
 		/*
 			Readbytes is called from mxml.Terminal.

@@ -1,9 +1,11 @@
 package models.network
 {
 	import flash.events.*;
+	import flash.filesystem.FileStream;
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;
+	import flash.filesystem.*;
 	
 	public class HoneypotServer extends EventDispatcher
 	{
@@ -13,6 +15,7 @@ package models.network
 		private var _socket:Socket;
 		private var bytes:ByteArray;
 		private var block_cursor:uint = 0;
+		private var receivedBytes:ByteArray;
 		
 		public function HoneypotServer(serverName:String, serverPort:int = 8081)
 		{
@@ -22,6 +25,7 @@ package models.network
 			prepareEvents();
 			bytes = new ByteArray();
 			trace("HoneypotServer instance is created");
+			receivedBytes = new ByteArray();
 		}
 		public function connect():void
 		{
@@ -48,6 +52,7 @@ package models.network
 		{
 			var bytes:ByteArray = new ByteArray();
 			_socket.readBytes(bytes);
+			receivedBytes.writeBytes(bytes);
 			processData(bytes);
 			sendAck();
 		}
@@ -69,9 +74,13 @@ package models.network
 				s += b.toString(16) + "|";
 			}
 			bytes.position = position;
-			trace(s);			
+			trace(s);
 		}
 		
+		
+		/*
+			This is called outside of the class to retrieve the bytes
+		*/
 		public function readAllBytes(dest:ByteArray):void
 		{
 			/*
@@ -88,7 +97,6 @@ package models.network
 				trace("Wrong block_cursor. availableBytes, block_cursor = " 
 					+ String(src.bytesAvailable) + ", " + String(block_cursor));
 			}
-			printBytes(src);
 			src.readBytes(dest, 0, block_cursor);
 			src.readBytes(new_bytes);
 			src.clear();
@@ -177,7 +185,19 @@ package models.network
 			if (connected()) {
 				trace("closing socket");
 				_socket.close();
+				outputReceivedData();
 			}
+		}
+		
+		private function outputReceivedData() :void
+		{
+			var fileName:String = "tty_data.out";
+			var outFile:File = File.desktopDirectory;
+			outFile = outFile.resolvePath(fileName);
+			var outStream:FileStream = new FileStream();
+			outStream.open(outFile, FileMode.WRITE);
+			outStream.writeBytes(receivedBytes, 0, receivedBytes.length);
+			outStream.close();
 		}
 
 	}

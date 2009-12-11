@@ -40,8 +40,7 @@ package views
 			addChild(t);
 			t.x = 20;
 			t.y = 20;
-			t.scaleX = 0.50;
-			t.scaleY = 0.50;
+			t.scale = 0.50;
 		}
 		
 		private function drawCircle():void

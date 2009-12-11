@@ -20,6 +20,12 @@ package controllers
 	{
 		private var screen:UIComponent;
 		private var hosts:Object;
+		public var hostCount:uint = 0;
+		public var R:Number = 300;
+		public var centerX:Number = 400;
+		public var centerY:Number = 300;
+		public var gradScale:Number = 0.8;
+		
 		/*
 			Class for reach a canvas to draw on.
 			Mainly used for view classes.
@@ -27,6 +33,8 @@ package controllers
 		public function CanvasManager(s:UIComponent)
 		{
 			screen = s;
+			centerX = s.width / 2;
+			centerY = s.height / 2;
 			hosts = new Object();
 		}
 		
@@ -34,7 +42,9 @@ package controllers
 		{
 			var host:Host = new Host(hostname);
 			hosts[hostname] = host;
+			hostCount++;
 			screen.addChild(host);
+			alignHosts();
 		}
 		
 		public function destroyHost(hostname:String):void
@@ -74,6 +84,40 @@ package controllers
 		public function shutdown():void
 		{
 			
+		}
+		
+		public function alignHosts():void
+		{
+			var i:uint = 0;
+			var h:Host;
+
+			if (hostCount <= 1) { // one
+				for each(h in hosts) {
+					h.x = centerX;
+					h.y = centerY;
+					h.scaleX = h.scaleY = 1.0;
+				}
+			} else if (hostCount == 2) { // two
+				for each(h in hosts) {
+					if (i == 0) {
+						h.x = centerX + R;
+						h.y = centerY + 0;
+					} else {
+						h.x = centerX - R;
+						h.y = centerY + 0;
+					}
+					h.scaleX = h.scaleY = 0.8;
+					++i;
+				}
+			} else { // Three or more
+				var o:Number = 2 * Math.PI / hostCount;
+				for each (h in hosts) {
+					h.x = R * Math.cos(o * i) + centerX;
+					h.y = R * Math.sin(o * i) + centerY;
+					h.scaleX = h.scaleY = gradScale * Math.sin(Math.PI / hostCount);
+					i++;
+				}
+			}
 		}
 	}
 }
