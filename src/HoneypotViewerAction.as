@@ -1,10 +1,8 @@
 // ActionScript file
 // ActionScript file
 import flash.events.Event;
-
-import mx.controls.Button;
-import mx.core.UIComponent;
-
+import flash.utils.ByteArray;
+import models.utils.Logger;
 
 private function init():void
 {	
@@ -19,16 +17,15 @@ public function hello():void
 
 public function startCanvasPlayer():void
 {
-	trace("This is start()");
-
 	player = new CanvasPlayer(canvas);
-	player.setServerDispatcher("127.0.0.1", 8080);
+	// player.setServerDispatcher("127.0.0.1", 8080);
+	player.setServerDispatcher("192.168.124.188", 8080);
+	Logger.log("Hello, World!!!");	
 	player.start();
 
 }
 
 public function exitingHandler(exitingEvent:Event):void {
-	trace("Ending");
 	if (player) {
 		player.shutdown();
 	}

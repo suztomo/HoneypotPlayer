@@ -6,7 +6,8 @@ package views
 	import flash.utils.IDataInput;
 	
 	import mx.core.UIComponent;
-	
+	import mx.effects.Move;
+	import mx.events.MoveEvent;
 	import org.partty.mxml.Terminal;
 
 	/*
@@ -31,7 +32,9 @@ package views
 			x = count * 30;
 			y = count * 30;
 			count++;
+			
 		}
+		
 		public function writeBytes(src:ByteArray, offset:uint=0, length:uint=0) :void
 		{
 			bytes.writeBytes(src, offset, length);

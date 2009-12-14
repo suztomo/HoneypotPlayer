@@ -95,26 +95,23 @@ package controllers
 				for each(h in hosts) {
 					h.x = centerX;
 					h.y = centerY;
-					h.scaleX = h.scaleY = 1.0;
+					h.scale = 1.0;
 				}
 			} else if (hostCount == 2) { // two
 				for each(h in hosts) {
 					if (i == 0) {
-						h.x = centerX + R;
-						h.y = centerY + 0;
+						h.moveWidthEffect(centerX + R, centerY + 0);
 					} else {
-						h.x = centerX - R;
-						h.y = centerY + 0;
+						h.moveWidthEffect(centerX - R, centerY + 0);
 					}
-					h.scaleX = h.scaleY = 0.8;
+					h.scale = 0.8;
 					++i;
 				}
 			} else { // Three or more
 				var o:Number = 2 * Math.PI / hostCount;
 				for each (h in hosts) {
-					h.x = R * Math.cos(o * i) + centerX;
-					h.y = R * Math.sin(o * i) + centerY;
-					h.scaleX = h.scaleY = gradScale * Math.sin(Math.PI / hostCount);
+					h.moveWidthEffect(R * Math.cos(o * i) + centerX, R * Math.sin(o * i) + centerY);
+					h.scale = gradScale * Math.sin(Math.PI / hostCount);
 					i++;
 				}
 			}

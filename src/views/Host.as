@@ -1,11 +1,15 @@
 package views
 {
 	import flash.display.Sprite;
+	import flash.events.Event;
+	import flash.events.MouseEvent;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	import flash.utils.ByteArray;
 	
 	import mx.core.UIComponent;
+	import mx.effects.*;
+	import mx.events.MoveEvent;
 	/**
 	 *  Host class that represents host in view
 	 *  Host has several terminals that represents tty inside it. 
@@ -16,7 +20,8 @@ package views
 		public var term:Terminal;
 		public var terms:Object;
 		public var hostname:String;
-		
+		public var zoomRatio:Number;
+						
 		public function Host(name:String)
 		{
 			hostname = name;
@@ -24,8 +29,70 @@ package views
 			terms = new Object();
 			drawCircle();
 			drawName();
+			addEventListener("creationComplete", creationEffects);
+			addEventListener(MouseEvent.ROLL_OVER, onMouseOverEffects);
+			addEventListener(MouseEvent.ROLL_OUT, onMouseOutEffects);
+			zoomRatio = 1.0;
+			
+			
 		}
 		
+		public function creationEffects(e:Event):void
+		{
+			var creationEffects:Parallel;
+			var fadeEffect:Fade;
+			fadeEffect = new Fade(this);
+			fadeEffect.alphaFrom = 0.0;
+			fadeEffect.alphaTo = 1.0;
+			fadeEffect.duration = 1000;
+			
+			creationEffects = new Parallel();
+			creationEffects.addChild(fadeEffect);
+			creationEffects.play();
+			
+			trace("effect");	
+		}
+		
+		public function onMouseOverEffects(e:Event):void
+		{
+			var ze:Zoom;
+			ze = new Zoom(this);
+			ze.zoomWidthFrom = ze.zoomHeightFrom = 1.0;
+			ze.zoomHeightTo = ze.zoomWidthTo = 2.0;
+			ze.duration = 350;
+			ze.play();
+		}
+		
+		public function onMouseOutEffects(e:Event):void
+		{
+			var ze:Zoom;
+			ze = new Zoom(this);
+			ze.zoomWidthFrom = ze.zoomHeightFrom = 2.0;
+			ze.zoomHeightTo = ze.zoomWidthTo = 1.0;
+			ze.duration = 350;
+			ze.play();
+		}
+		
+		
+		
+		public function moveWidthEffect(x:Number, y:Number):void
+		{
+			if (this.x == 0 && this.y == 0) {
+				this.x = x;
+				this.y = y;
+				return;
+			}
+			var m:Move = new Move(this);
+			m.xFrom = this.x;
+			m.yFrom = this.y;
+			m.xTo = x;
+			m.yTo = y;
+			m.duration = 1000;
+			m.play();
+			this.x = x;
+			this.y = y;
+			trace("Hello!");
+		}
 		
 		public function writeTTY(ttyname:String, data:ByteArray):void
 		{
@@ -40,7 +107,7 @@ package views
 			addChild(t);
 			t.x = 20;
 			t.y = 20;
-			t.scale = 0.50;
+			t.scale = zoomRatio;
 		}
 		
 		private function drawCircle():void
@@ -58,7 +125,6 @@ package views
 			// set the contents before textformat
 			var format:TextFormat = new TextFormat("Arial", 20, 0x0000000);
 			t.setTextFormat(format);
-
 			addChild(t);
 		}
 		
@@ -75,6 +141,15 @@ package views
 				t = terms[name];
 			}
 			return t;
+		}
+		
+		public function set scale(s:Number):void
+		{
+			// scaleX = scaleY = s;
+			for each(var t:Terminal in terms) {
+				t.scale = s;
+			}
+			zoomRatio = s;
 		}
 		
 		public function highlight():void

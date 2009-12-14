@@ -52,7 +52,8 @@ package models.network
 		{
 			var bytes:ByteArray = new ByteArray();
 			_socket.readBytes(bytes);
-			receivedBytes.writeBytes(bytes);
+			bytes.readBytes(receivedBytes);
+//			receivedBytes.writeBytes(bytes);
 			processData(bytes);
 			sendAck();
 		}
