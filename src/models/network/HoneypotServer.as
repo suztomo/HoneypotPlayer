@@ -1,12 +1,18 @@
 package models.network
 {
 	import flash.events.*;
-	import flash.filesystem.FileStream;
+	import flash.filesystem.*;
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;
-	import flash.filesystem.*;
 	
+	import models.events.DataProviderError;
+	
+	/*
+		This class represents a honeypot server that sends 
+		its information about attackers; tty data etc.
+		An instance of this class is held by BlockProcessor.
+	*/
 	public class HoneypotServer extends EventDispatcher
 	{
 		private var _serverName:String = "127.0.0.1";
@@ -161,12 +167,15 @@ package models.network
 		
 		private function onIOError(ioevent:IOErrorEvent):void
 		{
-			trace(ioevent.text);
+			var e:DataProviderError = new DataProviderError(DataProviderError.SERVER_UNREACHABLE,
+															"IOErrror");
+			dispatchEvent(e);
 		}
 		
 		private function onError(event:Event):void
 		{
-			trace(event.type);
+			trace("onError / HoneypotServer");
+			dispatchEvent(new DataProviderError(DataProviderError.SERVER_SOME_ERROR, "some error"));
 		}
 		
 		private function onClose(event:Event):void

@@ -1,6 +1,8 @@
 package controllers
 {
 	import flash.events.Event;
+	import flash.events.EventDispatcher;
+	import flash.filesystem.File;
 	import flash.utils.ByteArray;
 	
 	import models.events.*;
@@ -12,14 +14,14 @@ package controllers
 		BlockProcessor generates events according to its input (network / recorded one).
 		This class is responsible to handle the events and to give some feedback
 		to view classes, that is, CanvasManager.
-		
+		A instance of this class is held by HoneypotViewerAction. 
 		
 		Usage:
 		  cp = new CanvasPlayer(uicomp);
 		  cp.setServerDispatcher("127.0.0.1", 8888);
 		  cp.start();
 	*/
-	public class CanvasPlayer
+	public class CanvasPlayer extends EventDispatcher
 	{
 		private var manager:CanvasManager;
 		private var dispatcher:HoneypotEventDispatcher;
@@ -32,8 +34,20 @@ package controllers
 		public function setServerDispatcher(serverName:String, serverPort:uint):void {
 			dispatcher = new BlockProcessor(serverName, serverPort);
 			dispatcher.addEventListener(HoneypotEvent.TYPE, onHoneypotEvent);
+			dispatcher.addEventListener(DataProviderError.TYPE, errorHandler);
 		}
 		
+		public function setFileDispatcher(filePath:String):void
+		{
+			var replayer:ReplayProcessor = new ReplayProcessor(filePath);
+		}
+		
+		/* just propagation */
+		private function errorHandler(e:DataProviderError):void
+		{
+			dispatchEvent(new DataProviderError(e.kind, e.message));
+		}
+				
 		public function start():void
 		{
 			dispatcher.run();
@@ -73,8 +87,10 @@ package controllers
 		public function shutdown():void
 		{
 			trace("shutting down player");
-			dispatcher.shutdown();
-			manager.shutdown();
+			if (dispatcher != null)
+				dispatcher.shutdown();
+			if (manager != null)
+				manager.shutdown();
 		}
 	}
 }

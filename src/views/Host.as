@@ -32,9 +32,7 @@ package views
 			addEventListener("creationComplete", creationEffects);
 			addEventListener(MouseEvent.ROLL_OVER, onMouseOverEffects);
 			addEventListener(MouseEvent.ROLL_OUT, onMouseOutEffects);
-			zoomRatio = 1.0;
-			
-			
+			zoomRatio = 1.0;			
 		}
 		
 		public function creationEffects(e:Event):void
@@ -49,8 +47,6 @@ package views
 			creationEffects = new Parallel();
 			creationEffects.addChild(fadeEffect);
 			creationEffects.play();
-			
-			trace("effect");	
 		}
 		
 		public function onMouseOverEffects(e:Event):void
@@ -91,7 +87,6 @@ package views
 			m.play();
 			this.x = x;
 			this.y = y;
-			trace("Hello!");
 		}
 		
 		public function writeTTY(ttyname:String, data:ByteArray):void

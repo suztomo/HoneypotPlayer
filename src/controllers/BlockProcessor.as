@@ -1,8 +1,10 @@
 package controllers
 {
 	import flash.events.Event;
-	import flash.events.EventDispatcher;
 	import flash.events.ProgressEvent;
+	import flash.filesystem.File;
+	import flash.filesystem.FileMode;
+	import flash.filesystem.FileStream;
 	import flash.utils.ByteArray;
 	import flash.utils.Endian;
 	
@@ -11,24 +13,42 @@ package controllers
 	import models.network.Block;
 	import models.network.HoneypotServer;
 
+
+	/*
+		The class processes the data block of the server 
+		and records its abstract data inside the variable messages.
+		The stored messages will be used to replay them.
+		
+		A instance of this class is hold by CanvasPlayer.
+	*/
 	public class BlockProcessor extends HoneypotEventDispatcher
 	{
-		private var server:HoneypotServer;
-		private var machines:Object; // Map of (id => HoneypotMachine).
-		private var messages:Array;
+		private var _server:HoneypotServer;
+		private var _machines:Object; // Map of (id => HoneypotMachine).
+		private var _messages:Array;
 		public const MESSAGE_TTY_OUTPUT:uint = 1;
+		private var _recordTimeBase:Number;
 		
 		public function BlockProcessor(serverName:String, serverPort:uint)
 		{
-			machines = new Object(); // assoc array
-			server = new HoneypotServer(serverName, serverPort);
-			server.addEventListener(ProgressEvent.PROGRESS, dataHandler);
-			messages = new Array();
+			_machines = new Object(); // assoc array
+			_server = new HoneypotServer(serverName, serverPort);
+			_server.addEventListener(ProgressEvent.PROGRESS, dataHandler);
+			_server.addEventListener(DataProviderError.TYPE, errorHandler);
+			_messages = new Array();
+			_recordTimeBase = (new Date()).time;
 		}
 		
 		public override function run():void
 		{
-			server.connect();
+			_server.connect();
+		}
+		
+		/* just propagation */
+		private function errorHandler(e:DataProviderError):void
+		{
+			var h:DataProviderError = new DataProviderError(e.kind, e.message);
+			dispatchEvent(h);
 		}
 
 		private function dataHandler(event:Event) :void{
@@ -151,20 +171,37 @@ package controllers
 			);
 			
 			message.buildTermInputMessage(hostname, tty_name, bytes);
-			
+			recordMessage(message, (new Date()).time);
 			var ev:HoneypotEvent = new HoneypotEvent(HoneypotEvent.HOST_TERM_INPUT, message);
 			dispatchEvent(ev);
 		}
 		
 		public override function shutdown():void {
-			server.close();
+			saveRecordedMessages();
+			_server.close();
 		}
 		
 		/* Record the message to replay the messages afterwards */
-		private function recordMessage(sec:uint, msec:uint, message:HoneypotEventMessage):void
+		private function recordMessage(message:HoneypotEventMessage, msec:Number = -1):void
 		{
-			messages.push(message);
-			return;
+			if (msec < 0) {
+				msec = (new Date()).time;
+			}
+			message.time = msec - this._recordTimeBase;
+			_messages.push(message);
+		}
+		
+		private function saveRecordedMessages():void
+		{
+			var logFile:File = File.documentsDirectory;
+			logFile = logFile.resolvePath("honepot.log");
+			var fs:FileStream = new FileStream();
+			fs.open(logFile, FileMode.WRITE);
+			for each (var o:HoneypotEventMessage in _messages) {
+				fs.writeObject(o);
+			}
+			fs.close();
+			trace("saved!")
 		}
 		
 		private function printBytes(bytes:ByteArray):void

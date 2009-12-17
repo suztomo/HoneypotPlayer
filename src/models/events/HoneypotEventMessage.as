@@ -13,6 +13,7 @@ package models.events
 	 * e.g. HOST_TERM_INPUT message doesn't use hostname
 	 * 
 	 */
+	[RemoteClass]
 	public class HoneypotEventMessage
 	{
 		public var kind: String;
@@ -28,9 +29,10 @@ package models.events
 		public var host1:String;
 		public var host2:String;
 		public var weight:uint;
+		public var time:Number;
 		
 
-		public function HoneypotEventMessage(k:String)
+		public function HoneypotEventMessage(k:String = "")
 		{
 			kind = k;	
 		}
