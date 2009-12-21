@@ -116,5 +116,12 @@ package controllers
 				}
 			}
 		}
+		
+		public function flushAllBuffers():void
+		{
+			for each (var h:Host in hosts) {
+				h.flushAllBuffers();
+			}
+		}
 	}
 }

@@ -6,19 +6,9 @@ import flash.errors.*;
 import flash.events.Event;
 
 import models.events.*;
+import models.utils.Logger;
 
 import mx.controls.Alert;
-
-private function init():void
-{	
-	trace("Ths is init()");
-}
-
-public function hello():void
-{
-	trace("this is hello");
-	
-}
 
 			
 private function receiveFormData(e:DataSelectionEvent):void
@@ -36,12 +26,15 @@ private function receiveFormData(e:DataSelectionEvent):void
 
 public function startCanvasPlayerWithServer(serverAddress:String, serverPort:uint):void
 {
-	player = new CanvasPlayer(terminalViewCanvas);
+	player = new CanvasPlayer(terminalView.canvas);
 	player.setServerDispatcher(serverAddress, serverPort);
 	player.addEventListener(DataProviderError.TYPE, handleError);
 	player.start();
 }
 
+/*
+	Realtime
+*/
 public function handleError(event:DataProviderError):void
 {
 	switch(event.kind) {
@@ -55,14 +48,27 @@ public function handleError(event:DataProviderError):void
 	
 }
 
+/*
+	Replay
+*/
 public function startCanvasPlayerWithFile(filePath:String):void
 {
-	trace("startCanvasPlayerWidthFile");
-	player = new CanvasPlayer(terminalViewCanvas);
-	player.setFileDispatcher(filePath);
-	
-	// do nothing
-} 
+	player = new CanvasPlayer(terminalView.canvas);
+	player.setFileDispatcher(filePath, terminalView.autoProcess);
+	player.addEventListener(DataProviderError.TYPE, handleError);
+	terminalView.addEventListener(SliderSeekEvent.TYPE, sliderSeekHandler);
+	player.start();
+}
+
+public function startSlider(updateTimerSpan:Number, percentagePerSpan:Number):void
+{
+	terminalView.autoProcess(updateTimerSpan, percentagePerSpan);
+}
+
+public function sliderSeekHandler(seekEvent:SliderSeekEvent):void
+{
+	player.seekByPercentage(seekEvent.value);
+}
 
 
 public function exitingHandler(exitingEvent:Event):void {

@@ -26,16 +26,40 @@ package models.events
 		*/
 		static public const HOST_INVADED: String = "invaded";
 
-		public var message:HoneypotEventMessage;
+		/**
+		 * Event type for flush all buffer in all hosts, after seek
+		 */
+		static public const FLUSH_ALL_BUFFERS: String = "flushAllBuffers"; 
 
-		public var kind:String;
+		private var _message:HoneypotEventMessage;
 
-		public function HoneypotEvent(k:String, m:HoneypotEventMessage)
+		private var _kind:String;
+
+		public function HoneypotEvent(kind:String, honeypotEventMessage:HoneypotEventMessage)
 		{
 			super(TYPE);
-			message = m;
-			kind = k; 
+			_message = honeypotEventMessage;
+			_kind = kind; 
 		}
 		
+		public function set kind(value:String):void
+		{
+			_kind = value;
+		}
+		
+		public function set message(value:HoneypotEventMessage):void
+		{
+			_message = value;
+		}
+		
+		public function get kind():String
+		{
+			return _kind;
+		}
+		
+		public function get message():HoneypotEventMessage
+		{
+			return _message;
+		}
 	}
 }

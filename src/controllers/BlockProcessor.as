@@ -12,6 +12,7 @@ package controllers
 	import models.events.*;
 	import models.network.Block;
 	import models.network.HoneypotServer;
+	import models.utils.Logger;
 
 
 	/*
@@ -37,6 +38,7 @@ package controllers
 			_server.addEventListener(DataProviderError.TYPE, errorHandler);
 			_messages = new Array();
 			_recordTimeBase = (new Date()).time;
+			kind = super.REALTIME; // make difference when it start().
 		}
 		
 		public override function run():void
@@ -154,7 +156,7 @@ package controllers
 			sec = bytes.readUnsignedInt(); // unused
 			msec = bytes.readUnsignedInt(); // unused
 			size = bytes.readUnsignedInt();
-			if (sec > 1000 || msec > 1000000 || size > 1000) {
+			if (sec > 1000 || msec > 1000000 || size > 5000) {
 				trace("wrong: sec " + String(sec) + ", msec " + String(msec) + ", ttydatasize " + String(size));
 /*				bytes.position -= 23;
 				printBytes(bytes);*/
@@ -172,13 +174,13 @@ package controllers
 			
 			message.buildTermInputMessage(hostname, tty_name, bytes);
 			recordMessage(message, (new Date()).time);
-			var ev:HoneypotEvent = new HoneypotEvent(HoneypotEvent.HOST_TERM_INPUT, message);
+			var ev:HoneypotEvent = new HoneypotEvent(message.kind, message);
 			dispatchEvent(ev);
 		}
 		
 		public override function shutdown():void {
 			saveRecordedMessages();
-			_server.close();
+			_server.close(); // to save the data
 		}
 		
 		/* Record the message to replay the messages afterwards */
@@ -187,7 +189,7 @@ package controllers
 			if (msec < 0) {
 				msec = (new Date()).time;
 			}
-			message.time = msec - this._recordTimeBase;
+			message.time = msec - _recordTimeBase;
 			_messages.push(message);
 		}
 		
@@ -198,6 +200,7 @@ package controllers
 			var fs:FileStream = new FileStream();
 			fs.open(logFile, FileMode.WRITE);
 			for each (var o:HoneypotEventMessage in _messages) {
+				o.beforeSerialized();
 				fs.writeObject(o);
 			}
 			fs.close();
@@ -216,7 +219,7 @@ package controllers
 				s += b.toString(16) + "|";
 			}
 			bytes.position = position;
-			trace(s);			
+			trace(s);
 		}
 
 	}

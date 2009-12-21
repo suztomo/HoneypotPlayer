@@ -9,7 +9,6 @@ package views
 	
 	import mx.core.UIComponent;
 	import mx.effects.*;
-	import mx.events.MoveEvent;
 	/**
 	 *  Host class that represents host in view
 	 *  Host has several terminals that represents tty inside it. 
@@ -155,6 +154,13 @@ package views
 		public function cease():void
 		{
 			
+		}
+		
+		public function flushAllBuffers():void
+		{
+			for each(var t:Terminal in terms) {
+				t.clear();
+			}
 		}
 	}
 }

@@ -28,11 +28,9 @@ package views
 
 			terminal.dataProvider = this;
 			bytes = new ByteArray();
-			trace(String(count) + ": terminal "+tty_name+ " is created");
 			x = count * 30;
 			y = count * 30;
 			count++;
-			
 		}
 		
 		public function writeBytes(src:ByteArray, offset:uint=0, length:uint=0) :void
@@ -60,6 +58,11 @@ package views
 		public function set scale(x:Number):void
 		{
 			scaleX = scaleY = x;
+		}
+		
+		public function clear():void
+		{
+			terminal.clear();
 		}
 
 		/*

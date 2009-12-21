@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="400"
+	height="300"
+	backgroundColor="0xFFFFFF"
+	creationComplete="onCreationComplete()"
+	>
+	<mx:states>
+		<mx:State name="ServerSelection">
+			<mx:SetProperty target="{serverInfoForm}" name="enabled" value="true" />
+			<mx:SetProperty target="{fileInfoForm}" name="enabled" value="false" />
+		</mx:State>
+		<mx:State name="FileSelection">
+			<mx:SetProperty target="{serverInfoForm}" name="enabled" value="false" />
+			<mx:SetProperty target="{fileInfoForm}" name="enabled" value="true" />
+		</mx:State>
+	</mx:states>
+	<mx:Script>
+		<![CDATA[
+			import models.events.DataSelectionEvent;
+			import models.utils.Logger;
+			import mx.effects.*;
+			import mx.controls.Alert;
+			
+			private var _filter:FileFilter;
+			private var _file:File = new File();
+			
+			private var _filePath:String;
+			private var _serverAddress:String;
+			private var _serverPort:uint;
+			
+			private function onCreationComplete():void
+			{
+				setCurrentState("ServerSelection");
+				radioServer.selected = true;
+			}
+			
+			private function disappear():void
+			{
+				var fe:Fade = new Fade(this);
+				fe.alphaFrom = alpha;
+				fe.alphaTo = 0.0;
+				fe.duration = 350;
+				fe.play();
+			}
+			
+			private function appear():void
+			{
+				var fe:Fade = new Fade(this);
+				fe.alphaFrom = alpha;
+				fe.alphaTo = 1.0;
+				fe.duration = 350;
+				fe.play();
+			}
+			
+			public override function set visible(value:Boolean):void
+			{
+				super.visible = value;
+				appear();
+			}
+			
+			private function selectFile():void
+			{
+				try {
+					_filter = new FileFilter("Log file only", "*.out;*.dat;*.log");
+					_file.addEventListener(Event.SELECT, onSelect);
+					_file.addEventListener(Event.CANCEL, onCancel);
+					_file.browseForOpen("Select log file", [_filter])
+				} catch(error:Error) {
+					Logger.log(error.message);
+				}
+			}
+			
+			private function onSelect(event:Event):void
+			{
+				Logger.log(event.target.nativePath);
+				_filePath = event.target.nativePath
+			}
+			
+			private function onCancel(event:Event):void
+			{
+				Logger.log("Canceled");
+			}
+			
+			private function serverSelected():void
+			{
+				setCurrentState("ServerSelection");
+			}
+			
+			private function fileSelected():void
+			{
+				setCurrentState("FileSelection");
+			}
+			
+			private function startFromServer():void
+			{
+				_serverAddress = serverAddress.text;
+				_serverPort = uint(serverPort.text);
+				if (_serverAddress == null || _serverPort > 0xFFFF || _serverPort < 1) {
+					Alert.show("Fill server correct infomation");
+					return;
+				}
+				var e:DataSelectionEvent = new DataSelectionEvent(null, _serverAddress, _serverPort);
+				dispatchEvent(e);
+				disappear();
+			}
+			
+			private function startFromFile():void
+			{
+				if (_filePath == null) {
+					Alert.show("Select log file");
+					return;
+				}
+				var e:DataSelectionEvent = new DataSelectionEvent(_filePath);
+				dispatchEvent(e);
+				disappear();
+			}
+		]]>
+	</mx:Script>
+	<mx:VBox paddingLeft="20" paddingTop="20">
+		<mx:Text text="Select which data to play with.">
+		
+		</mx:Text>
+		<mx:VBox id="formServer">
+			<mx:VBox>
+				<mx:HBox>
+					<mx:RadioButton id="radioServer" label="Server" 
+						click="serverSelected()" groupName="dataSelection" />
+					<mx:VBox id="serverInfoForm">
+						<mx:Form>
+							<mx:FormHeading label="Connect to server" textAlign="left" />
+							<mx:FormItem label="Server Address" >
+								<mx:TextInput id="serverAddress" width="120" text="192.168.124.188" />
+							</mx:FormItem>
+							<mx:FormItem label="Server Port" >
+								<mx:TextInput id="serverPort" width="60" text="8080" />
+							</mx:FormItem>
+						</mx:Form>
+					</mx:VBox>
+				</mx:HBox>
+				<mx:VBox paddingLeft="260" >
+					<mx:Button label="OK" click='startFromServer()' />				
+				</mx:VBox>
+			</mx:VBox>
+		</mx:VBox>
+		<mx:VBox id="formFile">
+			<mx:VBox>
+				<mx:HBox>
+					<mx:RadioButton id="radioFile" label="File" 
+						click="fileSelected()" groupName="dataSelection" />
+					<mx:HBox id="fileInfoForm">
+						<mx:Text text="Load from file." />
+						<mx:Button label="Select File" click="selectFile()" />				
+					</mx:HBox>
+				</mx:HBox>
+				<mx:VBox paddingLeft="260" >
+					<mx:Button label="OK" click='startFromFile()' />				
+				</mx:VBox>
+			</mx:VBox>
+		</mx:VBox>
+	</mx:VBox>
+	
+</mx:Canvas>

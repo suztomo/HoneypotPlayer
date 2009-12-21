@@ -2,10 +2,10 @@ package controllers
 {
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
-	import flash.filesystem.File;
 	import flash.utils.ByteArray;
 	
 	import models.events.*;
+	import models.utils.Logger;
 	
 	import mx.core.UIComponent;
 	
@@ -37,9 +37,14 @@ package controllers
 			dispatcher.addEventListener(DataProviderError.TYPE, errorHandler);
 		}
 		
-		public function setFileDispatcher(filePath:String):void
+		public function setFileDispatcher(filePath:String, startSliderCallback:Function):void
 		{
-			var replayer:ReplayProcessor = new ReplayProcessor(filePath);
+			dispatcher = new ReplayProcessor(filePath);
+			dispatcher.addEventListener(HoneypotEvent.TYPE, onHoneypotEvent);
+			dispatcher.addEventListener(DataProviderError.TYPE, errorHandler);
+			
+			// To start slider at the time replay starts
+			(dispatcher as ReplayProcessor).sliderStartCallback = startSliderCallback;
 		}
 		
 		/* just propagation */
@@ -50,6 +55,10 @@ package controllers
 				
 		public function start():void
 		{
+			if (dispatcher == null) {
+				Logger.log("Dispatcher is not set");
+				return;
+			}
 			dispatcher.run();
 		}
 		
@@ -75,10 +84,25 @@ package controllers
 					var data:ByteArray = ev.message.ttyoutput;
 					manager.sendTermInput(hostname, ttyname, data);
 					break;
+				case HoneypotEvent.FLUSH_ALL_BUFFERS:
+					flushAllBuffers();
+					break;
 				default:
-					trace("Undefined type of HoneypotEvent");
+					Logger.log("Undefined type of HoneypotEvent");
 					break;
 			}
+		}
+		
+		private function flushAllBuffers():void
+		{
+			manager.flushAllBuffers();
+		}
+		
+		
+		/* Replay only */
+		public function seekByPercentage(percentage:Number):void
+		{
+			dispatcher.seekByPercentage(percentage);
 		}
 		
 		/**
@@ -86,7 +110,7 @@ package controllers
 		 */
 		public function shutdown():void
 		{
-			trace("shutting down player");
+			Logger.log("shutting down player");
 			if (dispatcher != null)
 				dispatcher.shutdown();
 			if (manager != null)

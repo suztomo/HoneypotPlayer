@@ -9,6 +9,9 @@ package controllers
 	 */
 	public class HoneypotEventDispatcher extends EventDispatcher
 	{
+		public var kind:String;
+		public const REPLAY:String = "Replay";
+		public const REALTIME:String = "Realtime";
 		public function HoneypotEventDispatcher():void
 		{
 			super(null);
@@ -25,6 +28,11 @@ package controllers
 		public function shutdown():void
 		{
 			trace("abstract shutting down!");	
+		}
+		
+		public function seekByPercentage(percentage:Number):void
+		{
+			trace("abstract seekByPercentage");
 		}
 	}
 }
