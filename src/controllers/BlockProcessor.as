@@ -27,7 +27,19 @@ package controllers
 		private var _server:HoneypotServer;
 		private var _machines:Object; // Map of (id => HoneypotMachine).
 		private var _messages:Array;
-		public const MESSAGE_TTY_OUTPUT:uint = 1;
+		public static const MESSAGE_TTY_OUTPUT:uint = 1;
+		public static const MESSAGE_ROOT_PRIV:uint = 2;
+		public static const MESSAGE_SYSCALL:uint = 3;
+
+		public static const HEADER_SIZEOF_SYSCALL_NAME:uint = 16;
+		public static const HEADER_SIZEOF_HPNODE:uint = 4;
+		public static const HEADER_SIZEOF_TTYNAME:uint = 7
+		public static const HEADER_SIZEOF_SEC:uint = 4;
+		public static const HEADER_SIZEOF_MSEC:uint = 4;
+		public static const HEADER_SIZEOF_TTYDATASIZE:uint = 4;
+
+
+
 		private var _recordTimeBase:Number;
 		
 		public function BlockProcessor(serverName:String, serverPort:uint)
@@ -99,18 +111,55 @@ package controllers
 					case MESSAGE_TTY_OUTPUT:
 						processTTYData(block);
 						break;
+					case MESSAGE_ROOT_PRIV:
+						processRootPriv(block);
+						break;
+					case MESSAGE_SYSCALL:
+						processSyscall(block);
+						break;
 					default:
-						trace("Undefined block type");
+						trace("Undefined block type:" + kind +" /" + Object(this).constructor);
 				}
 			}
 		}
 
-
-		public const HEADER_SIZEOF_HPNODE:uint = 4;
-		public const HEADER_SIZEOF_TTYNAME:uint = 7
-		public const HEADER_SIZEOF_SEC:uint = 4;
-		public const HEADER_SIZEOF_MSEC:uint = 4;
-		public const HEADER_SIZEOF_TTYDATASIZE:uint = 4;
+		public function processRootPriv(block:Block):void
+		{
+			/* To record the events, just aligh this messages according to time */
+			var host:String = "host23";
+			var message:HoneypotEventMessage = new HoneypotEventMessage(
+				HoneypotEvent.ROOT_PRIV
+			);
+			
+			message.buildRootPrivMessage(host, "some command");
+			recordMessage(message, (new Date()).time);
+			var ev:HoneypotEvent = new HoneypotEvent(message.kind, message);
+			dispatchEvent(ev);			
+		}
+	
+	
+		public function processSyscall(block:Block):void
+		{
+			/* To record the events, just aligh this messages according to time */
+			var bytes:ByteArray = block.bytes;			
+			if (bytes.bytesAvailable != HEADER_SIZEOF_HPNODE + HEADER_SIZEOF_SYSCALL_NAME) {
+				Logger.log("invalid bytes available " + bytes.bytesAvailable + " / processSyscall");
+				return;
+			}
+			var hp_node:uint = bytes.readUnsignedInt();
+			var hostname:String = "host_" + String(hp_node);
+			var syscall:String = bytes.readMultiByte(HEADER_SIZEOF_SYSCALL_NAME, "utf-8");
+			var message:HoneypotEventMessage = new HoneypotEventMessage(
+				HoneypotEvent.SYSCALL
+			);
+			trace("processing syscall:" + syscall);
+			message.buildSyscallMessage(hostname, syscall);
+			Logger.log(String(message));
+			recordMessage(message, (new Date()).time);
+			var ev:HoneypotEvent = new HoneypotEvent(message.kind, message);
+			dispatchEvent(ev);
+		}
+		
 
 		/*
 			Processes the tty data to HoneypotMachine.
@@ -128,18 +177,18 @@ package controllers
 
 			if (bytes.bytesAvailable <= HEADER_SIZEOF_HPNODE + HEADER_SIZEOF_TTYNAME
 				+ HEADER_SIZEOF_SEC + HEADER_SIZEOF_MSEC + HEADER_SIZEOF_TTYDATASIZE) {
-				trace("Too short bytes for ttydata");
+				Logger.log("Too short bytes for ttydata");
 				return;
 			}
 			
 			hp_node = bytes.readUnsignedInt(); // hp_node
 			var hostname:String = "host_" + String(hp_node);
 			if (bytes.bytesAvailable < 7 + 4 + 4 + 4) {
-				trace("Wrong byte length " + String(bytes.bytesAvailable) + " / HoneypotMachine.writeBytesToTTY()");
+				Logger.log("Wrong byte length " + String(bytes.bytesAvailable) + " / HoneypotMachine.writeBytesToTTY()");
 				return;
 			}
 			var prev_position:uint = bytes.position;
-			tty_name = bytes.readMultiByte(7, "utf-8"); // tty_name
+			tty_name = bytes.readMultiByte(HEADER_SIZEOF_TTYNAME, "utf-8"); // tty_name
 			
 			/*
 				Only pseudo terminal slave, not master.
@@ -158,8 +207,6 @@ package controllers
 			size = bytes.readUnsignedInt();
 			if (sec > 1000 || msec > 1000000 || size > 5000) {
 				trace("wrong: sec " + String(sec) + ", msec " + String(msec) + ", ttydatasize " + String(size));
-/*				bytes.position -= 23;
-				printBytes(bytes);*/
 			}
 			if (bytes.bytesAvailable != size) {
 				trace("TTY bytes(" + bytes.bytesAvailable + ") does not have equal length with size(" +

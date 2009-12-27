@@ -15,7 +15,7 @@
 				name="visible" value="true" />
 			<mx:SetProperty target="{terminalView}" 
                 name="visible" value="false"/>
-			<mx:SetProperty target="{activityGridCanvas}" 
+			<mx:SetProperty target="{activityGrid}" 
                 name="visible" value="false"/>
 		</mx:State>
 		<mx:State name="TerminalView">
@@ -23,7 +23,7 @@
 				name="visible" value="false" />
 			<mx:SetProperty target="{terminalView}" 
                 name="visible" value="true"/>
-			<mx:SetProperty target="{activityGridCanvas}" 
+			<mx:SetProperty target="{activityGrid}" 
                 name="visible" value="false"/>
 		</mx:State>
 		<mx:State name="ActivityGrid">
@@ -31,10 +31,9 @@
 				name="visible" value="false" />
 			<mx:SetProperty target="{terminalView}" 
                 name="visible" value="false"/>
-			<mx:SetProperty target="{activityGridCanvas}" 
+			<mx:SetProperty target="{activityGrid}" 
                 name="visible" value="true"/>
 		</mx:State>
-		
 	</mx:states>
 	
 		<mx:VBox id="v1">
@@ -52,7 +51,7 @@
 
 <!-- 	<mx:Canvas id="terminalViewCanvas"  width="100%" height="100%" backgroundColor="#FFFFFF" visible="false" /> -->
 	<views:TerminalView id="terminalView" />
-	<mx:Canvas id="activityGridCanvas"  width="100%" height="100%" backgroundColor="#33FFAA" visible="false" />
+	<views:ActivityGrid id="activityGrid" />
     <mx:Script source="AutoSaveWindowPref.as" />
     <mx:Script source="HoneypotViewerAction.as" />
 	

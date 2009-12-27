@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" backgroundColor="#FFFFFF" >		
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" backgroundColor="#FFFFFF" 
+	creationComplete="onCreationComplete()" >		
 	<mx:states>
 		<mx:State name="Realtime" >
-			<mx:SetProperty target="terminaViewCanvas" name="visible" value="true" />			
+			<mx:SetProperty target="{terminalViewCanvas}" name="visible" value="true" />
+			<mx:SetProperty target="{slider}" name="visible" value="false" />
 		</mx:State>
 		<mx:State name="Replay" >
-			<mx:SetProperty target="terminaViewCanvas" name="visible" value="false" />
+			<mx:SetProperty target="{terminalViewCanvas}" name="visible" value="true" />
+			<mx:SetProperty target="{slider}" name="visible" value="true" />
 		</mx:State>
 	</mx:states>
 	<mx:Script>
@@ -47,10 +50,15 @@
 					default:
 						Logger.log("undefined mode / TerminalView");
 				}
+				trace(slider.enabled);
 			}
 			
 			public function sliderChanged():void
 			{
+				if (_timer == null) {
+					Logger.log("Invalid slider interaction /" + Object(this).constructor);
+					return;
+				}
 				_timer.stop();
 				var e:SliderSeekEvent = new SliderSeekEvent(slider.value);
 				dispatchEvent(e);

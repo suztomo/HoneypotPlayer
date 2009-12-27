@@ -6,6 +6,10 @@ package models.events
 	{
 		static public const TYPE:String = "HonepotEvent";
 
+
+		/*
+			For TerminalView
+		*/
 		/**
 		 * Event type for when a new host is created. 
 		 */
@@ -26,10 +30,26 @@ package models.events
 		*/
 		static public const HOST_INVADED: String = "invaded";
 
+
 		/**
 		 * Event type for flush all buffer in all hosts, after seek
 		 */
 		static public const FLUSH_ALL_BUFFERS: String = "flushAllBuffers"; 
+
+
+		/*
+			For ActivityGrid
+		*/
+		/**
+		 * Event type for when a system call is called
+		 **/
+		static public const SYSCALL: String = "systemcall";
+		
+		/**
+		 * Event type for when root priviledge is used.
+		 **/
+		static public const ROOT_PRIV:String = "root";
+
 
 		private var _message:HoneypotEventMessage;
 

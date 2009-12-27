@@ -14,7 +14,7 @@ package controllers
 	 * have addChild nor removeChild in its methods.
 	 * 
 	 * Terminal class is managed by views.Host, so this class is not responsible
-	 * to find nor send the terminal data to that class.
+	 * to find nor send the terminal data directly to the class.
 	 */
 	public class CanvasManager
 	{

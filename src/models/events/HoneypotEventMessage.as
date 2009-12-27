@@ -34,6 +34,12 @@ package models.events
 		public var time:Number;
 		public var percentage:Number = -1; // Created by ReplayProcessor.dispatchHoneypotEvent
 
+		/* command name of root priviledges */
+		public var command:String;
+
+		/* syscall name */
+		public var syscall:String;
+
 		public function HoneypotEventMessage(k:String = "")
 		{
 			kind = k;
@@ -70,6 +76,19 @@ package models.events
 			weight = w;
 			host1 = h1;
 			host2 = h2;
+		}
+		
+		public function buildRootPrivMessage(host:String, cmd:String = "unknown"):void
+		{
+			// any information?
+			this.hostname = host;
+			command = cmd; 
+		}
+		
+		public function buildSyscallMessage(host:String, syscall:String):void
+		{
+			this.hostname = host;
+			this.syscall = syscall;
 		}
 		
 		public function toString():String{

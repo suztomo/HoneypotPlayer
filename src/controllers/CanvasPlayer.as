@@ -88,7 +88,7 @@ package controllers
 					flushAllBuffers();
 					break;
 				default:
-					Logger.log("Undefined type of HoneypotEvent");
+					Logger.log("Undefined type of HoneypotEvent / " + String(Object(this).constructor));
 					break;
 			}
 		}
