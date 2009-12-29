@@ -243,7 +243,7 @@ package controllers
 		private function saveRecordedMessages():void
 		{
 			var logFile:File = File.documentsDirectory;
-			logFile = logFile.resolvePath("honepot.log");
+			logFile = logFile.resolvePath("honeypot.log");
 			var fs:FileStream = new FileStream();
 			fs.open(logFile, FileMode.WRITE);
 			for each (var o:HoneypotEventMessage in _messages) {
@@ -251,7 +251,7 @@ package controllers
 				fs.writeObject(o);
 			}
 			fs.close();
-			trace("saved!")
+			Logger.log("Saved: " + String(logFile.nativePath));
 		}
 		
 		private function printBytes(bytes:ByteArray):void

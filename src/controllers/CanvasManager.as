@@ -7,7 +7,7 @@ package controllers
 	import views.Host;
 	
 	/**
-	 * This class manages screen and objects on it,  e.g., views.Host class.
+	 * This class manages TerminalViewer and objects on it,  e.g., views.Host class.
 	 * CanvasPlayer receives some events from BlockProcessor and 
 	 * sends feedbacks to this class, CanvasManager.
 	 * Note that this Canvas manager itself is not Display Object, so it does not 

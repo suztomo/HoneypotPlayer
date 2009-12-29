@@ -13,45 +13,26 @@
 		<mx:State name="DataSelection">
 			<mx:SetProperty target="{dataSelectionForm}"
 				name="visible" value="true" />
-			<mx:SetProperty target="{terminalView}" 
-                name="visible" value="false"/>
-			<mx:SetProperty target="{activityGrid}" 
+			<mx:SetProperty target="{viewTab}" 
                 name="visible" value="false"/>
 		</mx:State>
-		<mx:State name="TerminalView">
+		<mx:State name="Replay">
 			<mx:SetProperty target="{dataSelectionForm}"
 				name="visible" value="false" />
-			<mx:SetProperty target="{terminalView}" 
+			<mx:SetProperty target="{viewTab}" 
                 name="visible" value="true"/>
-			<mx:SetProperty target="{activityGrid}" 
-                name="visible" value="false"/>
+            <mx:SetProperty target="{slider}"
+            	name="visible" value="true" />
 		</mx:State>
-		<mx:State name="ActivityGrid">
+		<mx:State name="Realtime">
 			<mx:SetProperty target="{dataSelectionForm}"
 				name="visible" value="false" />
-			<mx:SetProperty target="{terminalView}" 
-                name="visible" value="false"/>
-			<mx:SetProperty target="{activityGrid}" 
+			<mx:SetProperty target="{viewTab}" 
                 name="visible" value="true"/>
+            <mx:SetProperty target="{slider}"
+            	name="visible" value="false" />
 		</mx:State>
 	</mx:states>
-	
-		<mx:VBox id="v1">
-        <mx:Button id="b1" label="Click Me"/>
-
-        <!-- Define Button control to switch to NewButton view state. -->
-        <mx:Button label="Change to NewButton state" 
-            click="currentState = 'TerminalView';"/>            
-        <!-- Define Button control to switch to default view state. -->
-        <mx:Button label="Change to base view state" 
-            click="currentState = 'ActivityGrid';"/>
-    </mx:VBox>
-
-	<views:DataSelectionForm id="dataSelectionForm" />
-
-<!-- 	<mx:Canvas id="terminalViewCanvas"  width="100%" height="100%" backgroundColor="#FFFFFF" visible="false" /> -->
-	<views:TerminalView id="terminalView" />
-	<views:ActivityGrid id="activityGrid" />
     <mx:Script source="AutoSaveWindowPref.as" />
     <mx:Script source="HoneypotViewerAction.as" />
 	
@@ -70,4 +51,21 @@
 		]]>
 	</mx:Script>
     
+	<views:DataSelectionForm id="dataSelectionForm" height="100%" width="100%" />
+	<mx:VBox>
+		<mx:TabNavigator id="viewTab" height="100%" creationPolicy="all">
+			<mx:VBox label="Terminal View"  >
+					<views:TerminalView id="terminalView" slider="{slider}" />
+			</mx:VBox>
+			<mx:VBox label="Activity Grid" >
+				<views:ActivityGrid id="activityGrid" />
+			</mx:VBox>
+			<mx:VBox label="Activity Chart" >
+				<views:ActivityLineChart id="activityLineChart" />			
+			</mx:VBox>
+		</mx:TabNavigator>
+		<views:Slider id="slider" sliderChanged="onSliderChange(event);" 
+			sliderProgress="onSliderProgress(event)" />	
+	</mx:VBox>
+
 </mx:WindowedApplication>

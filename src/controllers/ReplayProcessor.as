@@ -10,6 +10,9 @@ package controllers
 	import models.utils.Logger;
 	
 	
+	/*
+		Dispatches HoneypotEvent according to the contents of the file.
+	*/
 	public class ReplayProcessor extends HoneypotEventDispatcher
 	{
 		private var _file:File; /* The file that contains previous information of the history. */
@@ -34,14 +37,14 @@ package controllers
 		
 		private function loadFile(filePath:String):void
 		{
-			// Any exception handler?
+			// Todo: any exception handler?
 			var f:File = new File(filePath);
 			var fs:FileStream = new FileStream();
 			fs.open(f, FileMode.READ);
 			while(fs.bytesAvailable) {
 				var o:HoneypotEventMessage = fs.readObject() as HoneypotEventMessage;
-				_messages.push(o);
 				o.afterDeserialized();
+				_messages.push(o);
 			}
 			fs.close();
 		}
@@ -159,11 +162,32 @@ package controllers
 			sliderStartCallback(updateTimerSpan, percentagePerSpan);   
 		}
 
+		public function prepareActivityChart(amanager:ActivityChartManager):void
+		{
+			var r:Object;
+			var msg:HoneypotEventMessage;
+			var i:uint;
+			var ary:Array = new Array();
+			for (i=0; i<_messages.length; ++i) {
+				msg = _messages[i] as HoneypotEventMessage;
+				if (msg.kind == HoneypotEvent.SYSCALL) {
+					ary.push(msg);
+				}
+			}
+			amanager.prepareMessages(ary);
+		}
+		
+		public function get total():Number
+		{
+			return _seeker.total;
+		}
+
 	}
 }
 
 import models.events.HoneypotEventMessage;
 import models.utils.Logger;
+
 /*
 	Seeks index: percentage -> appropriate index
 */
@@ -176,6 +200,9 @@ class Seeker
 	{
 		_messages = messages;
 		var msg:HoneypotEventMessage = messages[messages.length - 1] as HoneypotEventMessage;
+		if (msg == null) {
+			Logger.log("Invalid messages length: " + messages.length + " / " + Object(this).constructor);
+		}
 		_total = msg.time + finishGap;
 	}
 	
@@ -187,7 +214,7 @@ class Seeker
 	{
 		var t:Number = _total * percent / 100;
 		var i:uint;
-		for (i = 0; (_messages[i] as HoneypotEventMessage).time < t; ++i) {
+		for (i = 0; i < _messages.length && (_messages[i] as HoneypotEventMessage).time < t; ++i) {
 		}
 		return i; 
 	}

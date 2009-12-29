@@ -25,10 +25,22 @@ package controllers
 	{
 		private var manager:CanvasManager;
 		private var dispatcher:HoneypotEventDispatcher;
+		private var _activityChartManager:ActivityChartManager;
+		private var _total:Number = -1;
 		
 		public function CanvasPlayer(canvas:UIComponent)
 		{
 			manager = new CanvasManager(canvas);
+		}
+
+		public function addActivityChartManager(activityChartManager:ActivityChartManager):void
+		{
+			_activityChartManager = activityChartManager;
+			if (dispatcher == null) {
+				Logger.log("Invalid call sequence / " + Object(this).constructor);
+			}
+			// sends activity data to the chart
+			(dispatcher as ReplayProcessor).prepareActivityChart(_activityChartManager);		
 		}
 		
 		public function setServerDispatcher(serverName:String, serverPort:uint):void {
@@ -43,7 +55,10 @@ package controllers
 			dispatcher.addEventListener(HoneypotEvent.TYPE, onHoneypotEvent);
 			dispatcher.addEventListener(DataProviderError.TYPE, errorHandler);
 			
-			// To start slider at the time replay starts
+			/*
+				To start slider at the time replay starts
+				because the slider does not know total time.
+			*/
 			(dispatcher as ReplayProcessor).sliderStartCallback = startSliderCallback;
 		}
 		
@@ -52,7 +67,7 @@ package controllers
 		{
 			dispatchEvent(new DataProviderError(e.kind, e.message));
 		}
-				
+
 		public function start():void
 		{
 			if (dispatcher == null) {
@@ -60,6 +75,13 @@ package controllers
 				return;
 			}
 			dispatcher.run();
+		}
+		
+		public function get total():Number
+		{
+			if (_total >= 0) return _total;
+			// this call can be called after this.setFileDispatcher in HoneypotViewerAction.as
+			return (_total = (dispatcher as ReplayProcessor).total);
 		}
 		
 		private function onProcessEvent(event:Event) :void
@@ -87,6 +109,9 @@ package controllers
 				case HoneypotEvent.FLUSH_ALL_BUFFERS:
 					flushAllBuffers();
 					break;
+				case HoneypotEvent.SYSCALL:
+					_activityChartManager.put(ev.message);
+					break;					
 				default:
 					Logger.log("Undefined type of HoneypotEvent / " + String(Object(this).constructor));
 					break;
@@ -103,7 +128,9 @@ package controllers
 		public function seekByPercentage(percentage:Number):void
 		{
 			dispatcher.seekByPercentage(percentage);
+			_activityChartManager.seekByTime(this.total * percentage / 100);
 		}
+		
 		
 		/**
 		 * shutting down clean up sockets and
