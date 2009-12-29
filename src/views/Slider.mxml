@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:Metadata>
+        [Event(name="sliderChanged", type="flash.events.Event")]
+    </mx:Metadata>
+    <mx:Metadata>
+        [Event(name="sliderProgress", type="flash.events.Event")]
+    </mx:Metadata>
+	<mx:Metadata>
+        [Event(name="sliderStopped", type="flash.events.Event")]
+    </mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			import models.events.SliderSeekEvent;
+			import flash.events.Event;
+			import models.utils.Logger;
+			
+			private var _cursorPosition:Number = 0;
+			private var _updateTimerSpan:Number = 100 // milliseconds
+			private var _percentagePerSpan:Number = 10;
+			private var _timer:Timer;
+			
+			public static const REPLAY:String = "Replay";
+			public static const REALTIME:String = "Realtime";
+			
+			public var total:Number = -1;;
+			
+			/*
+				This MXML dispatches SliderSeekEvent.
+			*/
+			private function onCreationComplete():void
+			{
+				setCurrentState("Realtime");
+			}
+			
+			public function get value():Number
+			{
+				return slider.value;
+			}
+			
+			public function set value(value:Number):void
+			{
+				slider.value = value;
+				dispatchEvent(new Event("sliderChanged"));
+			}
+			
+			public function get time():Number // milliseconds
+			{
+				/* 
+					this can be called after total is set
+					by HoneypotViewerAction.startCanvasPlayerWithFile
+				*/
+				if (total < 0) {
+					Logger.log("total is not initialized / " + Object(this).constructor);
+					return 1;
+				}
+				return total * slider.value / 100;
+			}
+
+			public function setMode(mode:String):void
+			{
+				switch(mode) {
+					case REPLAY:
+						setCurrentState("Replay");
+						break;
+					case REALTIME:
+						setCurrentState("Realtime");
+						break;
+					default:
+						Logger.log("undefined mode / TerminalView");
+				}
+			}
+			
+			public function sliderChanged():void
+			{
+				if (_timer == null) {
+					Logger.log("Invalid slider interaction /" + Object(this).constructor);
+					return;
+				}
+				_timer.stop();
+//				var e:SliderSeekEvent = new SliderSeekEvent(slider.value);
+				dispatchEvent(new Event("sliderChanged"));
+				_timer.start();
+			}
+			
+			public function stop():void
+			{
+				dispatchEvent(new Event("sliderStopped"));
+			}
+			
+			
+			public function autoProcess(updateTimerSpan:Number, percentagePerSpan:Number):void
+			{
+				_updateTimerSpan = updateTimerSpan;
+				_percentagePerSpan = percentagePerSpan;
+				_timer = new Timer(_updateTimerSpan); // call each interval
+				_timer.addEventListener(TimerEvent.TIMER, this.updateSlider);
+				_timer.start();
+			}
+			
+			public function updateSlider(e:TimerEvent):void
+			{
+				var newv:Number = slider.value + _percentagePerSpan;
+				seek(newv);
+				dispatchEvent(new Event("sliderProgress"));
+			}
+			
+			/*
+				This class does not have to know the total time of the replay.
+			*/
+			public function seek(value:Number):void
+			{
+				if (value < 0 || value > 100) {
+					_timer.stop();
+					return;
+				}
+				slider.value = value;
+			}			
+
+		]]>
+	</mx:Script>
+		<mx:HBox paddingLeft="200">
+			<mx:HSlider width="800" id="slider" minimum="0" maximum="100"
+				value="0" tickColor="black" change="sliderChanged();" />		
+		</mx:HBox>
+</mx:Canvas>

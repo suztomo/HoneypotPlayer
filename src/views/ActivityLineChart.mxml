@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="95%" height="95%"
+	creationComplete="onCreationComplete()">
+	<mx:Script>
+		<![CDATA[
+		import controllers.ActivityChartManager;
+		import models.utils.Logger;
+	
+		import mx.charts.series.LineSeries;
+		import mx.collections.ArrayCollection;
+
+		public static const YAXIS:String = "activity";
+		public static const XAXIS:String = "time";
+		
+		[Bindable]
+		private var _activityData:ArrayCollection;
+		private var _timer:Timer;
+		
+		private var _savedData:Array;
+		private var _activityDataStartIndex:uint; // index in savedData.
+
+		private function onCreationComplete():void
+		{
+			_activityData = new ArrayCollection();
+			_savedData = new Array();
+			chart.series = new Array();
+		}
+		
+		private function saveRecord(record:Object):void
+		{
+			trace("saveRecord / " + Object(this).constructor);
+			_savedData.push(record);
+		}
+		
+		public function setActivityData(activityData:ArrayCollection):void
+		{
+			_activityData = activityData;
+		}
+	
+		
+		public function get upperTime():Number // tailing
+		{
+			if (_activityData.length == 0) {
+				return 0;
+			}
+			return (_activityData[_activityData.length - 1])[XAXIS];
+		}
+		
+		public function get lowerTime():Number // heading
+		{
+			if (_activityData.length == 0) {
+				return 0;
+			}
+			return (_activityData[0])[XAXIS];
+		}
+
+		public function seekByTime(limitTime:Number):void
+		{
+			if (this.upperTime > limitTime) {
+				cutTail(limitTime);
+			} else if (this.upperTime < limitTime) {
+				expandTail(limitTime);
+			}
+		}
+
+		/*
+			expands Tailing elements, whose time is smaller or equal than limitTime
+			
+			For example, in such situation as
+
+				_savedData    | 0| 1| 2| 3| 4| 5| 6| 7|
+				_activityData       | 0| 1| 2| 3| 4|
+			then,
+ 				_activityData.length = 5,
+				_activityDataStartIndex = 2;
+				startIndex will be 7, that is 5 + 2.
+		*/
+		private function expandTail(limitTime:Number):void
+		{
+			// assuming _activityData is start from 0 of _savedData;
+			const startIndex:uint = _activityData.length + _activityDataStartIndex;
+			// startIndex is index of _savedData.
+			
+			var array:ArrayCollection = _activityData;
+			var i:uint;
+			for (i = startIndex; i < _savedData.length; ++i) {
+				const r:Object = _savedData[i];
+				const t:Number = r[XAXIS];
+				if (t <= limitTime) {
+					array.addItem(r);
+				} else {
+					break;
+				}
+			}
+			_activityData = array;
+			trace("expandTail to " + limitTime);
+			trace("last element's time: " + _activityData[_activityData.length-1][XAXIS]);
+		}
+			
+		
+		/*
+			Eliminates the tailing elements from _activityData,
+			whose time is bigger than limitTime.
+		*/
+		private function cutTail(limitTime:Number):void
+		{
+			var i:uint = _activityData.length - 1;
+			var array:ArrayCollection = _activityData;
+			while(i > 0) {
+				const record:Object = array[i];
+				const time:Number = record[XAXIS];
+				if (time > limitTime) {
+					array.removeItemAt(i);
+					--i;
+				} else {
+					break;
+				}
+			}
+			_activityData = array;
+			trace("cut tail to " + limitTime);
+			trace("last element's time: " + _activityData[_activityData.length-1][XAXIS]);
+		}
+		/*
+			expands heading elements, whose time is bigger or equalthan limitTime
+			
+			_activityDataStartIndex can be changed in
+				expandHead, cutHead.
+		*/
+		private function expandHead(limitTime:Number):void
+		{
+			var i:uint;
+//			var tmp:Array = new Array();
+			var array:ArrayCollection = _activityData;
+			for (i = _activityDataStartIndex - 1; i >= 0; --i) {
+				const r:Object = _savedData[i];
+				const t:Number = r[XAXIS];
+				if (limitTime <= t) {
+					array.addItemAt(r, 0); // inefficient?
+				} else {
+					_activityDataStartIndex = i + 1;
+					break;
+				}
+			}
+			trace("expandHead to " + limitTime);
+		}
+		
+		
+		/*
+			Eliminates the heading elements from _activityData,
+			whose time is smaller than limitTime.
+		*/
+		private function cutHead(limitTime:Number):void
+		{
+			var i:uint = 0;
+			var array:ArrayCollection = _activityData;
+			var deleteCount:uint = 0;
+			while(array.length > 0) {
+				const record:Object = array[0];
+				const time:Number = record[XAXIS];
+				if (time < limitTime) {
+					// deletes element
+					array.removeItemAt(0);
+					++deleteCount;
+				} else {
+					break;
+				}
+			}
+			_activityData = array;
+			_activityDataStartIndex += deleteCount;
+			trace("cutHead to " + limitTime);
+		}
+		
+		/*
+			private var activities:ArrayCollection = new ArrayCollection( [
+				{ time:"1230", host1: 10, host2: 20, host3: 100},
+				{ time:"1240", host1: 200, host2: 20, host3: 80},
+				...
+		*/
+		
+		/*
+			Use Object as a record.
+				See  "Defining chart data / using chart data"
+				http://livedocs.adobe.com/flex/3/html/help.html?content=charts_intro_8.html#229476
+		*/
+		public function addRecord(record:Object, addSeriesFlag:Boolean = true):void
+		{
+			// checking new series(hostname) for each message is inefficient.
+			if (record[XAXIS] == null) {
+				Logger.log("invalid record / " + Object(this).constructor);
+				return;
+			}
+			trace(record[XAXIS]);
+			_activityData.addItem(record);
+		}
+		
+		
+		/*
+			Used in replay.
+		*/
+		public function prepareRecords(records:Array):void
+		{
+			var r:Object;
+			var i:uint;
+			for (i=0; i<records.length; ++i) {
+				r = records[i];
+				saveRecord(r);
+			}
+		}
+		
+		/*
+			called by ActivityChartManager
+		*/
+		public function addSeries(yField:String, displayName:String):void
+		{
+			var s:LineSeries = new LineSeries();
+			s.yField = yField;
+			s.displayName = displayName;
+			var currentSeries:Array = chart.series;
+			currentSeries.push(s);
+			chart.series = currentSeries;
+		}
+			
+			
+		]]>
+	</mx:Script>
+	<mx:Panel title="Activity Line Chart"  width="100%" height="95%" >
+		<mx:LineChart id="chart" dataProvider="{_activityData}"
+			showDataTips="true" width="100%" height="95%" >
+			<mx:horizontalAxis>
+				<mx:LinearAxis autoAdjust="false" />
+			</mx:horizontalAxis>
+		</mx:LineChart>
+	</mx:Panel>	
+</mx:Canvas>
