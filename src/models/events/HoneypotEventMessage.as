@@ -39,6 +39,9 @@ package models.events
 
 		/* syscall name */
 		public var syscall:String;
+		
+		/* node information */
+		public var addr:String;
 
 		public function HoneypotEventMessage(k:String = "")
 		{
@@ -71,13 +74,6 @@ package models.events
 			hostname = h;
 		}
 		
-		public function buildConnectionMessage(h1:String, h2:String, w:uint = 1):void
-		{
-			weight = w;
-			host1 = h1;
-			host2 = h2;
-		}
-		
 		public function buildRootPrivMessage(host:String, cmd:String = "unknown"):void
 		{
 			// any information?
@@ -89,6 +85,18 @@ package models.events
 		{
 			this.hostname = host;
 			this.syscall = syscall;
+		}
+		
+		public function buildNodeInfoMessage(host:String, addr:String):void
+		{
+			this.hostname = host;
+			this.addr = addr;
+		}
+		
+		public function buildConnectMessage(from_host:String, to_host:String):void
+		{
+			this.host1 = from_host;
+			this.host2 = to_host;
 		}
 		
 		public function toString():String{

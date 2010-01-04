@@ -130,7 +130,7 @@
 							<mx:Form>
 								<mx:FormHeading label="Connect to server" textAlign="left" />
 								<mx:FormItem label="Server Address" >
-									<mx:TextInput id="serverAddress" width="120" text="192.168.124.190" />
+									<mx:TextInput id="serverAddress" width="120" text="192.168.124.193" />
 								</mx:FormItem>
 								<mx:FormItem label="Server Port" >
 									<mx:TextInput id="serverPort" width="60" text="8080" />

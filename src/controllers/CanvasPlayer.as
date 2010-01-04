@@ -40,7 +40,9 @@ package controllers
 				Logger.log("Invalid call sequence / " + Object(this).constructor);
 			}
 			// sends activity data to the chart
-			(dispatcher as ReplayProcessor).prepareActivityChart(_activityChartManager);		
+			if (dispatcher.kind == HoneypotEventDispatcher.REPLAY) {
+				(dispatcher as ReplayProcessor).prepareActivityChart(_activityChartManager);
+			}
 		}
 		
 		public function setServerDispatcher(serverName:String, serverPort:uint):void {
@@ -111,7 +113,17 @@ package controllers
 					break;
 				case HoneypotEvent.SYSCALL:
 					_activityChartManager.put(ev.message);
-					break;					
+					break;
+				case HoneypotEvent.NODE_INFO:
+					hostname = ev.message.hostname;
+					var addr:String = ev.message.addr;
+					manager.sendNodeInfo(hostname, addr);
+					break;
+				case HoneypotEvent.CONNECT:
+					var from_host:String = ev.message.host1;
+					var to_host:String = ev.message.host2;
+					manager.sendConnectInfo(from_host, to_host);
+					break;
 				default:
 					Logger.log("Undefined type of HoneypotEvent / " + String(Object(this).constructor));
 					break;

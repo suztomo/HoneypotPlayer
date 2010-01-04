@@ -10,8 +10,8 @@ package controllers
 	public class HoneypotEventDispatcher extends EventDispatcher
 	{
 		public var kind:String;
-		public const REPLAY:String = "Replay";
-		public const REALTIME:String = "Realtime";
+		public static const REPLAY:String = "Replay";
+		public static const REALTIME:String = "Realtime";
 		public function HoneypotEventDispatcher():void
 		{
 			super(null);

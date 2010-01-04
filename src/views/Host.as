@@ -20,6 +20,7 @@ package views
 		public var terms:Object;
 		public var hostname:String;
 		public var zoomRatio:Number;
+		public var addr:String;
 						
 		public function Host(name:String)
 		{
@@ -115,7 +116,7 @@ package views
 		private function drawName():void
 		{
 			var t:TextField = new TextField();
-			t.text = hostname;	
+			t.text = hostname;
 			// set the contents before textformat
 			var format:TextFormat = new TextFormat("Arial", 20, 0x0000000);
 			t.setTextFormat(format);

@@ -30,6 +30,8 @@ package controllers
 		public static const MESSAGE_TTY_OUTPUT:uint = 1;
 		public static const MESSAGE_ROOT_PRIV:uint = 2;
 		public static const MESSAGE_SYSCALL:uint = 3;
+		public static const MESSAGE_NODE_INFO:uint = 4;
+		public static const MESSAGE_CONNECT:uint = 5;
 
 		public static const HEADER_SIZEOF_SYSCALL_NAME:uint = 16;
 		public static const HEADER_SIZEOF_HPNODE:uint = 4;
@@ -38,7 +40,9 @@ package controllers
 		public static const HEADER_SIZEOF_MSEC:uint = 4;
 		public static const HEADER_SIZEOF_TTYDATASIZE:uint = 4;
 
+		public static const HEADER_SIZEOF_ADDR:uint = 4;
 
+		public static const HOSTNAME_PREFIX:String = "host_";
 
 		private var _recordTimeBase:Number;
 		
@@ -50,7 +54,7 @@ package controllers
 			_server.addEventListener(DataProviderError.TYPE, errorHandler);
 			_messages = new Array();
 			_recordTimeBase = (new Date()).time;
-			kind = super.REALTIME; // make difference when it start().
+			kind = HoneypotEventDispatcher.REALTIME; // make difference when it start().
 		}
 		
 		public override function run():void
@@ -117,6 +121,12 @@ package controllers
 					case MESSAGE_SYSCALL:
 						processSyscall(block);
 						break;
+					case MESSAGE_NODE_INFO:
+						processNodeInfo(block);
+						break;
+					case MESSAGE_CONNECT:
+						processConnect(block);
+						break;
 					default:
 						trace("Undefined block type:" + kind +" /" + Object(this).constructor);
 				}
@@ -132,9 +142,7 @@ package controllers
 			);
 			
 			message.buildRootPrivMessage(host, "some command");
-			recordMessage(message, (new Date()).time);
-			var ev:HoneypotEvent = new HoneypotEvent(message.kind, message);
-			dispatchEvent(ev);			
+			dispatchEventMessage(message);
 		}
 	
 	
@@ -147,19 +155,67 @@ package controllers
 				return;
 			}
 			var hp_node:uint = bytes.readUnsignedInt();
-			var hostname:String = "host_" + String(hp_node);
+			var hostname:String = HOSTNAME_PREFIX + String(hp_node);
 			var syscall:String = bytes.readMultiByte(HEADER_SIZEOF_SYSCALL_NAME, "utf-8");
 			var message:HoneypotEventMessage = new HoneypotEventMessage(
 				HoneypotEvent.SYSCALL
 			);
-			trace("processing syscall:" + syscall);
 			message.buildSyscallMessage(hostname, syscall);
-			Logger.log(String(message));
-			recordMessage(message, (new Date()).time);
-			var ev:HoneypotEvent = new HoneypotEvent(message.kind, message);
-			dispatchEvent(ev);
+			dispatchEventMessage(message);
 		}
 		
+		/*
+		
+			|  hp_node  | addr[0] | addr[1] | addr[2] | addr[3] |
+			|     4     |    1    |    1    |    1    |    1    |
+		*/
+		
+		public function processNodeInfo(block:Block):void
+		{
+			var bytes:ByteArray = block.bytes;
+			if (bytes.bytesAvailable != HEADER_SIZEOF_HPNODE + HEADER_SIZEOF_ADDR) {
+				Logger.log("invalid bytes available " + bytes.bytesAvailable + " / processSyscall");
+				return;
+			}
+			var hp_node:uint = bytes.readUnsignedInt();
+			var addr:String;
+			var c:uint;
+			var message:HoneypotEventMessage = new HoneypotEventMessage(HoneypotEvent.NODE_INFO);
+			for (var i:int=0; i<4; ++i) {
+				c = bytes.readUnsignedByte();
+				addr += c;
+				if (i != 3) {
+					addr +="."
+				}
+			}
+			var hostname:String = HOSTNAME_PREFIX + String(hp_node);
+			message.buildNodeInfoMessage(hostname, addr);
+			dispatchEventMessage(message);
+		}
+		
+		/*
+			| from_node |  to_node  |
+			|     4     |     4     |
+		*/
+
+		public function processConnect(block:Block):void
+		{
+			var bytes:ByteArray = block.bytes;
+			if (bytes.bytesAvailable != HEADER_SIZEOF_HPNODE * 2) {
+				Logger.log("invalid bytes available " + bytes.bytesAvailable + " / processSyscall");
+				return;
+			}
+			Logger.log("processing connection info");
+			var hp_node:uint = bytes.readUnsignedInt();
+			var from_host:String = HOSTNAME_PREFIX + String(hp_node);
+			hp_node = bytes.readUnsignedInt();
+			var to_host:String = HOSTNAME_PREFIX + String(hp_node);
+			var message:HoneypotEventMessage = new HoneypotEventMessage(HoneypotEvent.CONNECT);
+			message.buildConnectMessage(from_host, to_host);
+			dispatchEventMessage(message);
+		}
+		
+
 
 		/*
 			Processes the tty data to HoneypotMachine.
@@ -182,7 +238,7 @@ package controllers
 			}
 			
 			hp_node = bytes.readUnsignedInt(); // hp_node
-			var hostname:String = "host_" + String(hp_node);
+			var hostname:String = HOSTNAME_PREFIX + String(hp_node);
 			if (bytes.bytesAvailable < 7 + 4 + 4 + 4) {
 				Logger.log("Wrong byte length " + String(bytes.bytesAvailable) + " / HoneypotMachine.writeBytesToTTY()");
 				return;
@@ -220,9 +276,7 @@ package controllers
 			);
 			
 			message.buildTermInputMessage(hostname, tty_name, bytes);
-			recordMessage(message, (new Date()).time);
-			var ev:HoneypotEvent = new HoneypotEvent(message.kind, message);
-			dispatchEvent(ev);
+			dispatchEventMessage(message);
 		}
 		
 		public override function shutdown():void {
@@ -230,6 +284,12 @@ package controllers
 			_server.close(); // to save the data
 		}
 		
+		private function dispatchEventMessage(message:HoneypotEventMessage):void
+		{
+			recordMessage(message);
+			var ev:HoneypotEvent = new HoneypotEvent(message.kind, message);
+			dispatchEvent(ev);
+		}		
 		/* Record the message to replay the messages afterwards */
 		private function recordMessage(message:HoneypotEventMessage, msec:Number = -1):void
 		{

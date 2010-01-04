@@ -46,9 +46,19 @@ package models.events
 		static public const SYSCALL: String = "systemcall";
 		
 		/**
-		 * Event type for when root priviledge is used.
+		 * Event type for when root priviledge is used
 		 **/
 		static public const ROOT_PRIV:String = "root";
+			
+		/**
+		 * Event type for creation of node information
+		 */
+		static public const NODE_INFO:String = "node";
+
+		/**
+		 * Event type for when a connection is made
+		 **/
+		static public const CONNECT:String = "connect"
 
 
 		private var _message:HoneypotEventMessage;

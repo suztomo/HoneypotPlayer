@@ -32,7 +32,7 @@ package controllers
 			_seeker = new Seeker(_messages);
 			
 			// make difference when it start()
-			kind = super.REPLAY;
+			kind = HoneypotEventDispatcher.REPLAY;
 		}
 		
 		private function loadFile(filePath:String):void

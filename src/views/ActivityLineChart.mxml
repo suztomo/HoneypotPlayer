@@ -93,8 +93,8 @@
 				}
 			}
 			_activityData = array;
-			trace("expandTail to " + limitTime);
-			trace("last element's time: " + _activityData[_activityData.length-1][XAXIS]);
+//			trace("expandTail to " + limitTime);
+//			trace("last element's time: " + _activityData[_activityData.length-1][XAXIS]);
 		}
 			
 		

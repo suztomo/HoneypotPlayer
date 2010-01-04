@@ -45,12 +45,7 @@
 			{
 				return terminalViewCanvas;
 			}
-			
-			public function setMode(mode:String):void
-			{
-				slider.setMode(mode);
-			}
-			
+
 
 			public function autoProcess(updateTimerSpan:Number, percentagePerSpan:Number):void
 			{
