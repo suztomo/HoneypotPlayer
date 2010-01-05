@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+This panel holds several terminals on it.
+and addChilded by TerminalView.terminalPanelCanvas.
+-->
+
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="80%" height="80%"
+	title="TerminalPanel" creationComplete="onCreationComplete();" visible="false"
+	paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10">
+	<mx:Script>
+	<![CDATA[
+		import mx.controls.Button;
+		import views.Terminal;
+		
+		private var terminals:Array;
+		private var terminal2Tab:Object;
+		private var tab2Terminal:Object;
+		private var tab2Timer:Object;
+		
+				
+		[Bindable]
+		public var hostname:String = "No name"; 
+		
+		private function onCreationComplete():void
+		{
+			terminals = new Array();
+			terminal2Tab = new Object;
+			tab2Terminal = new Object;
+			tab2Timer = new Object;
+			b.x = this.width - b.width - 20;
+		}
+		
+		public function addTerminal(terminal:Terminal):void
+		{
+			var b:Button = addTab(terminal);
+			terminalCanvas.addChild(terminal);
+			terminals.push(terminal);
+			terminal2Tab[terminal] = b;
+			tab2Terminal[b] = terminal;
+			var t:Timer = new Timer(100, 1);
+			tab2Timer[b] = t;
+			t.addEventListener(TimerEvent.TIMER,
+				function (event:Event) :void{
+					b.setStyle("fillColors", [0xFFFFFF, 0xCCCCCC])
+				}
+			);
+		}
+		
+		private function addTab(terminal:Terminal):Button
+		{
+			var tabName:String = terminal.name;
+			var tabButton:Button = new Button();
+			tabButton.label = tabName;
+			tabBox.addChild(tabButton);
+			tabButton.addEventListener(MouseEvent.CLICK, onTabClick);
+			return tabButton;
+		}
+		
+		private function onTabClick(event:MouseEvent):void
+		{
+			var b:Button = event.currentTarget as Button;
+			var t:Terminal = tab2Terminal[b]; // untyped!
+			showTerminal(t);
+		}
+		
+		public function showTerminal(terminal:Terminal):void
+		{
+			for each(var t:Terminal in terminals) {
+				if (t == terminal) {
+					terminalCanvas.addChild(t);
+				} else {
+//					t.visible = false;
+				}
+			}
+		}
+		
+		public function flashTab(terminal:Terminal):void
+		{
+			var b:Button = terminal2Tab[terminal];
+			b.setStyle("fillColors", [0xCCCCCC, 0x999999]);
+			// add some timer?
+			var t:Timer = tab2Timer[b];
+			t.reset();
+			t.start();
+		}
+		
+		public function off():void
+		{
+			this.visible = false;
+		}
+		
+		public function on():void
+		{
+			this.visible = true;
+		}
+		
+		public function close():void
+		{
+			off();
+		}
+		
+	]]>
+	</mx:Script>
+	<mx:Button id="b" label="Close" click="close();" />		
+	<mx:VBox>
+		<mx:Label text="{hostname}" />
+		<mx:HBox>
+			<mx:HBox id="tabBox" width="90%" height="50" />
+		</mx:HBox>
+		<mx:Canvas id="terminalCanvas" />	
+	</mx:VBox>
+</mx:Panel>

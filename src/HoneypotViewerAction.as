@@ -29,7 +29,7 @@ private function receiveFormData(e:DataSelectionEvent):void
 public function startCanvasPlayerWithServer(serverAddress:String, serverPort:uint):void
 {
 	setCurrentState("Realtime");
-	player = new CanvasPlayer(terminalView.canvas);
+	player = new CanvasPlayer(terminalView);
 	player.setServerDispatcher(serverAddress, serverPort);
 	player.addEventListener(DataProviderError.TYPE, handleError);
 	_activityChartManager = new ActivityChartManager(activityLineChart, 1000);
@@ -100,7 +100,7 @@ public function handleError(event:DataProviderError):void
 public function startCanvasPlayerWithFile(filePath:String):void
 {
 	setCurrentState("Replay");
-	player = new CanvasPlayer(terminalView.canvas);
+	player = new CanvasPlayer(terminalView);
 	player.setFileDispatcher(filePath, terminalView.autoProcess);
 	slider.total = player.total;
 	player.addEventListener(DataProviderError.TYPE, handleError);

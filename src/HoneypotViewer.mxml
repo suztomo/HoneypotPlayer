@@ -2,6 +2,7 @@
 <mx:WindowedApplication xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
 	initialize="init()"
     applicationComplete="handleApplicationComplete(event)"
+    creationComplete="handleCreationComplete();"
    	paddingTop="0" paddingBottom="0"
     paddingRight="0" paddingLeft="0"
     closing="exitingHandler(event);"
@@ -41,12 +42,18 @@
 			import controllers.CanvasPlayer;
 			import views.*;
 			import models.events.DataSelectionEvent;
+			import models.utils.Logger;
 			
 			private var player:CanvasPlayer;
 			private function handleApplicationComplete(event: Event): void {
 				initializeStagePosition();
 				setCurrentState("DataSelection");
 				dataSelectionForm.addEventListener(DataSelectionEvent.TYPE, receiveFormData);
+			}
+			
+			private function handleCreationComplete():void
+			{
+				Logger.setConsole(console);				
 			}
 		]]>
 	</mx:Script>
@@ -62,6 +69,9 @@
 			</mx:VBox>
 			<mx:VBox label="Activity Chart" >
 				<views:ActivityLineChart id="activityLineChart" />			
+			</mx:VBox>
+			<mx:VBox label="Console">
+				<views:Console id="console" />
 			</mx:VBox>
 		</mx:TabNavigator>
 		<views:Slider id="slider" sliderChanged="onSliderChange(event);" 

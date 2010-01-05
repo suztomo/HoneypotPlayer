@@ -3,10 +3,13 @@ package controllers
 	import flash.display.CapsStyle;
 	import flash.display.JointStyle;
 	import flash.display.LineScaleMode;
+	import flash.events.TimerEvent;
 	import flash.utils.ByteArray;
+	import flash.utils.Timer;
 	
 	import models.utils.Logger;
 	
+	import mx.containers.Canvas;
 	import mx.core.UIComponent;
 	
 	import views.Host;
@@ -25,7 +28,10 @@ package controllers
 	{
 		private var screen:UIComponent;
 		private var hosts:Object;
-		private var lineScreen:UIComponent;
+		private var hostsArray:Array;
+		private var _lineScreen:UIComponent;
+		private var _hostScreen:UIComponent;
+		private var _terminalPanelCanvas:Canvas;
 
 		public var hostCount:uint = 0;
 		public var R:Number = 300;
@@ -37,23 +43,41 @@ package controllers
 		/*
 			Class for reach a canvas to draw on.
 			Mainly used for view classes.
+			TerminalView.canvas will be the screen in CanvasPlayer(screen) 
+			in HoneypotViewerAction.as 
 		*/
-		public function CanvasManager(s:UIComponent)
+		public function CanvasManager(s:Canvas, terminalPanelCanvas:Canvas)
 		{
 			screen = s;
 			centerX = s.width / 2;
 			centerY = s.height / 2;
 			hosts = new Object();
-			lineScreen = new UIComponent();
-			screen.addChild(lineScreen); // lines in background
+			_lineScreen = new UIComponent();
+			_hostScreen = new UIComponent();
+			screen.addChild(_lineScreen); // lines in background
+			screen.addChild(_hostScreen);
+			_terminalPanelCanvas = terminalPanelCanvas;
+			
+			hostsArray = new Array;
+			
+			/*
+			    Foreground
+			  -----------------
+			     _terminalPanelCanvas
+			     screen    |  hostScreen
+			               |  lineScreen
+			  ------------------
+			    Background
+			*/
 		}
 		
 		public function createHost(hostname:String):void
 		{
-			var host:Host = new Host(hostname);
+			var host:Host = new Host(hostname, _terminalPanelCanvas);
 			hosts[hostname] = host;
+			hostsArray.push(hostname);
 			hostCount++;
-			screen.addChild(host);
+			_hostScreen.addChild(host);
 			alignHosts();
 		}
 		
@@ -61,7 +85,7 @@ package controllers
 		{
 			var host:Host = findHost(hostname);
 			host.cease();
-			screen.removeChild(host);
+			_hostScreen.removeChild(host);
 		}
 		
 		public function highlightHost(hostname:String):void
@@ -97,13 +121,19 @@ package controllers
 			var h1:Host = findHost(from_host);
 			var h2:Host = findHost(to_host);
 			
-			var s:UIComponent = lineScreen;
-			s.graphics.lineStyle(10, 0xFF1493, 1, false, LineScaleMode.VERTICAL,
+			var l:UIComponent = new UIComponent();
+			l.graphics.lineStyle(10, 0xFF1493, 1, false, LineScaleMode.VERTICAL,
                                CapsStyle.NONE, JointStyle.MITER, 10);
-			s.graphics.moveTo(h1.x, h1.y);
-			s.graphics.lineTo(h2.x, h2.y);
+			l.graphics.moveTo(h1.x, h1.y);
+			l.graphics.lineTo(h2.x, h2.y);
 			trace(h1.x + "," + h2.y + " - " + h2.x + "," + h2.y);
-			s.graphics.endFill();
+			l.graphics.endFill();
+			_lineScreen.addChild(l);
+			var t:Timer = new Timer(3000, 1);
+			t.addEventListener(TimerEvent.TIMER, function ():void {
+				_lineScreen.removeChild(l);
+			});
+			t.start();
 			Logger.log("drawd a line");
 		}
 		
@@ -132,6 +162,7 @@ package controllers
 		{
 			var i:uint = 0;
 			var h:Host;
+			var hn:String;
 
 			if (hostCount <= 1) { // one
 				for each(h in hosts) {
@@ -151,7 +182,8 @@ package controllers
 				}
 			} else { // Three or more
 				var o:Number = 2 * Math.PI / hostCount;
-				for each (h in hosts) {
+				for each (hn in hostsArray) {
+					h = hosts[hn];
 					h.moveWidthEffect(R * Math.cos(o * i) + centerX, R * Math.sin(o * i) + centerY);
 					h.scale = gradScale * Math.sin(Math.PI / hostCount);
 					i++;

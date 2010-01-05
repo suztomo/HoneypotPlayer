@@ -9,6 +9,8 @@ package controllers
 	
 	import mx.core.UIComponent;
 	
+	import views.TerminalView;
+	
 	/*
 		This class manages two components: CanvasManager and BlockProcessor.
 		BlockProcessor generates events according to its input (network / recorded one).
@@ -28,9 +30,9 @@ package controllers
 		private var _activityChartManager:ActivityChartManager;
 		private var _total:Number = -1;
 		
-		public function CanvasPlayer(canvas:UIComponent)
+		public function CanvasPlayer(terminalView:TerminalView)
 		{
-			manager = new CanvasManager(canvas);
+			manager = new CanvasManager(terminalView.canvas, terminalView.terminalViewCanvas);
 		}
 
 		public function addActivityChartManager(activityChartManager:ActivityChartManager):void

@@ -7,11 +7,12 @@ package views
 	import flash.text.TextFormat;
 	import flash.utils.ByteArray;
 	
+	import mx.containers.Canvas;
 	import mx.core.UIComponent;
 	import mx.effects.*;
 	/**
 	 *  Host class that represents host in view
-	 *  Host has several terminals that represents tty inside it. 
+	 *  Host has several terminals that represents tty inside its _terminalPanel. 
 	 *  Host highlights itself if its controller (CanvasManager) orders to do so. 
 	 */
 	public class Host extends UIComponent
@@ -21,8 +22,13 @@ package views
 		public var hostname:String;
 		public var zoomRatio:Number;
 		public var addr:String;
+		
+		private var _terminalPanel:TerminalPanel;
+		private var _terminalPanelCanvas:Canvas;
+		
+		private var _terminalCount:int = 0;
 						
-		public function Host(name:String)
+		public function Host(name:String, terminalPanelCanvas:Canvas = null)
 		{
 			hostname = name;
 			super();
@@ -30,9 +36,17 @@ package views
 			drawCircle();
 			drawName();
 			addEventListener("creationComplete", creationEffects);
+/*
 			addEventListener(MouseEvent.ROLL_OVER, onMouseOverEffects);
 			addEventListener(MouseEvent.ROLL_OUT, onMouseOutEffects);
-			zoomRatio = 1.0;			
+			*/
+			addEventListener(MouseEvent.CLICK, onMouseClick);
+			
+			zoomRatio = 1.0;
+			_terminalPanelCanvas = terminalPanelCanvas;
+			_terminalPanel = new TerminalPanel();
+			_terminalPanelCanvas.addChild(_terminalPanel);
+			_terminalPanel.hostname = hostname;
 		}
 		
 		public function creationEffects(e:Event):void
@@ -69,7 +83,10 @@ package views
 			ze.play();
 		}
 		
-		
+		public function onMouseClick(e:Event):void
+		{
+			showTerminalPanel();
+		}
 		
 		public function moveWidthEffect(x:Number, y:Number):void
 		{
@@ -93,16 +110,24 @@ package views
 		{
 			var t:Terminal = findTerminal(ttyname);
 			t.writeBytes(data);
+			_terminalPanel.flashTab(t);
+		}
+		
+		public function showTerminalPanel():void
+		{
+			_terminalPanel.on();	
 		}
 		
 		private function addTerminal(name:String):void
 		{
 			var t:Terminal = new Terminal(name);
 			terms[name] = t;
-			addChild(t);
-			t.x = 20;
-			t.y = 20;
-			t.scale = zoomRatio;
+			_terminalPanel.addTerminal(t);
+			_terminalCount += 1;
+			t.x = _terminalCount * 30;
+			t.y = _terminalCount * 30;
+
+//			t.scale = zoomRatio;
 		}
 		
 		private function drawCircle():void

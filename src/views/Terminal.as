@@ -1,13 +1,13 @@
 package views
 {
 	import flash.events.Event;
+	import flash.events.MouseEvent;
 	import flash.events.ProgressEvent;
 	import flash.utils.ByteArray;
 	import flash.utils.IDataInput;
 	
 	import mx.core.UIComponent;
-	import mx.effects.Move;
-	import mx.events.MoveEvent;
+	
 	import org.partty.mxml.Terminal;
 
 	/*
@@ -19,7 +19,6 @@ package views
 		
 		public var tty_name:String;
 		private var bytes:ByteArray;
-		public static var count:int = 0;
 		public function Terminal(_tty_name:String)
 		{
 			terminal = new org.partty.mxml.Terminal();
@@ -28,9 +27,7 @@ package views
 
 			terminal.dataProvider = this;
 			bytes = new ByteArray();
-			x = count * 30;
-			y = count * 30;
-			count++;
+			addEventListener(MouseEvent.CLICK, onClick);
 		}
 		
 		public function writeBytes(src:ByteArray, offset:uint=0, length:uint=0) :void
@@ -53,6 +50,16 @@ package views
 						bytes.position += bytes.bytesAvailable;
 			bytes.writeBytes(src, src.position, src.bytesAvailable);
 			bytes.position = prev_position;	
+		}
+		
+		public function onClick(event:MouseEvent):void
+		{
+			putFront();	
+		}
+		
+		public function putFront():void
+		{
+			this.parent.addChild(this);
 		}
 
 		public function set scale(x:Number):void
