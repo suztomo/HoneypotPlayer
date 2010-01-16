@@ -89,7 +89,7 @@ package controllers
 			while (bytes.bytesAvailable > 0) {
 				if (bytes.bytesAvailable < HEADER_SIZEOF_KIND
 					+ HEADER_SIZEOF_SIZE) {
-					trace("Too short bytes for process bytes bytesAvailable is "
+					Logger.log("Too short bytes for process bytes bytesAvailable is "
 						+ String(bytes.bytesAvailable));
 					break;
 				}
@@ -98,7 +98,7 @@ package controllers
 				var size:uint = bytes.readUnsignedInt();
 
 				if (bytes.bytesAvailable < size) {
-					trace("wrong size header / HoneypotPlayerMaster.processBytes");
+					Logger.log("wrong size header / HoneypotPlayerMaster.processBytes");
 					break;
 				}
 				var copied_bytes:ByteArray = new ByteArray;
@@ -201,8 +201,8 @@ package controllers
 		public function processConnect(block:Block):void
 		{
 			var bytes:ByteArray = block.bytes;
-			if (bytes.bytesAvailable != HEADER_SIZEOF_HPNODE * 2) {
-				Logger.log("invalid bytes available " + bytes.bytesAvailable + " / processSyscall");
+			if (bytes.bytesAvailable != HEADER_SIZEOF_HPNODE * 2 + 6) {
+				Logger.log("invalid bytes available " + bytes.bytesAvailable + " / processConnect");
 				return;
 			}
 			Logger.log("processing connection info");
@@ -210,8 +210,15 @@ package controllers
 			var from_host:String = HOSTNAME_PREFIX + String(hp_node);
 			hp_node = bytes.readUnsignedInt();
 			var to_host:String = HOSTNAME_PREFIX + String(hp_node);
+			var addr:String;;
+			for (var i:int=0; i<4; ++i) {
+				addr += bytes.readUnsignedByte();
+				if (i < 3)
+					addr += ".";
+			}
+			var port:uint = bytes.readUnsignedShort();
 			var message:HoneypotEventMessage = new HoneypotEventMessage(HoneypotEvent.CONNECT);
-			message.buildConnectMessage(from_host, to_host);
+			message.buildConnectMessage(from_host, to_host, addr, port);
 			dispatchEventMessage(message);
 		}
 		

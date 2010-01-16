@@ -7,6 +7,7 @@ package models.network
 	import flash.utils.Endian;
 	
 	import models.events.DataProviderError;
+	import models.utils.Logger;
 	
 	/*
 		This class represents a honeypot server that sends 
@@ -30,17 +31,16 @@ package models.network
 			_socket = new Socket();
 			prepareEvents();
 			bytes = new ByteArray();
-			trace("HoneypotServer instance is created");
 			receivedBytes = new ByteArray();
 		}
 		public function connect():void
 		{
-			trace("connecting...");
+			Logger.log("connecting...");
 			if (connected()) {
-				trace("Already connected");
+				Logger.log("Already connected");
 			}
 			_socket.connect(_serverName, _serverPort);
-			trace("connected!");
+			Logger.log("connected!");
 		}
 
 		public function connected():Boolean
@@ -50,7 +50,6 @@ package models.network
 		
 		private function onConnect(event:Event):void
 		{
-			trace("onConnect");
 			sendAck();
 		}
 		
@@ -101,7 +100,7 @@ package models.network
 			var new_bytes:ByteArray = new ByteArray;
 			src.position = 0;
 			if (src.bytesAvailable < block_cursor) {
-				trace("Wrong block_cursor. availableBytes, block_cursor = " 
+				Logger.log("Wrong block_cursor. availableBytes, block_cursor = " 
 					+ String(src.bytesAvailable) + ", " + String(block_cursor));
 			}
 			src.readBytes(dest, 0, block_cursor);

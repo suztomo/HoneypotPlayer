@@ -56,22 +56,7 @@ This component is used by HoneypotViewerAction.as
 			
 		]]>
 	</mx:Script>
-<!--
-	<mx:VBox borderStyle="solid">
-	</mx:VBox>
--->
 	<mx:Canvas id="terminalViewCanvas"  width="1200" height="700" visible="true" />
 	<mx:Canvas id="terminalPanelCanvas" width="90%" height="90%" visible="true" />
-<!--
-	<mx:Panel title="Panel Container Example" height="75%" width="75%" 
-            paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10" visible="false">
-		<mx:Label width="100%" color="blue"
-            text="Click the Button control to see panel properties."/>
-
-        <mx:TextArea id="panelPropertyArea" width="100%" height="100%"/>
-        <mx:Button label="Click to view Panel properties" click='Alert.show("Hello, Panel");'/>
-
-	</mx:Panel>
--->
 </mx:Canvas>
 

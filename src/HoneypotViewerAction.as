@@ -33,50 +33,10 @@ public function startCanvasPlayerWithServer(serverAddress:String, serverPort:uin
 	player.setServerDispatcher(serverAddress, serverPort);
 	player.addEventListener(DataProviderError.TYPE, handleError);
 	_activityChartManager = new ActivityChartManager(activityLineChart, 1000);
+	activityGrid.setDispatcher(player.dispatcher);
 	player.addActivityChartManager(_activityChartManager);
 	player.start();	
 }
-
-
-/*
-	Menu
-*/
-[Bindable]
-public var menuBarCollection:XMLListCollection;
-
-private var menubarXML:XMLList =
-    <>
-        <menuitem label="Menu1" data="top">
-            <menuitem label="MenuItem 1-A" data="1A"/>
-            <menuitem label="MenuItem 1-B" data="1B"/>
-        </menuitem>
-        <menuitem label="Menu2" data="top">
-            <menuitem label="MenuItem 2-A" type="check"  data="2A"/>
-            <menuitem type="separator"/>
-            <menuitem label="MenuItem 2-B" >
-                <menuitem label="SubMenuItem 3-A" type="radio"
-                    groupName="one" data="3A"/>
-                <menuitem label="SubMenuItem 3-B" type="radio"
-                    groupName="one" data="3B"/>
-            </menuitem>
-        </menuitem>
-    </>;
-
-// Event handler to initialize the MenuBar control.
-private function initCollections():void {
-    menuBarCollection = new XMLListCollection(menubarXML);
-}
-
-// Event handler for the MenuBar control's itemClick event.
-private function menuHandler(event:MenuEvent):void  {
-    // Don't open the Alert for a menu bar item that 
-    // opens a popup submenu.
-    if (event.item.@data != "top") {
-        Alert.show("Label: " + event.item.@label + "\n" + 
-            "Data: " + event.item.@data, "Clicked menu item");
-    }        
-}
-
 
 /*
 	Realtime
@@ -105,14 +65,12 @@ public function startCanvasPlayerWithFile(filePath:String):void
 	slider.total = player.total;
 	player.addEventListener(DataProviderError.TYPE, handleError);
 	//terminalView.addEventListener(SliderSeekEvent.TYPE, sliderSeekHandler);
-	_activityChartManager = new ActivityChartManager(activityLineChart, 1000);
+	_activityChartManager = new ActivityChartManager(activityLineChart, 100);
 	player.addActivityChartManager(_activityChartManager);
+	activityGrid.setDispatcher(player.dispatcher);
 	player.start();
-}
-
-public function startSlider(updateTimerSpan:Number, percentagePerSpan:Number):void
-{
-	terminalView.autoProcess(updateTimerSpan, percentagePerSpan);
+	slider.addEventListener("sliderStop", player.stopReplayTimer);
+	slider.addEventListener("sliderStart", player.startReplayTimer);
 }
 
 public function sliderSeekHandler(seekEvent:SliderSeekEvent):void
@@ -120,6 +78,9 @@ public function sliderSeekHandler(seekEvent:SliderSeekEvent):void
 	player.seekByPercentage(seekEvent.value);
 }
 
+/*
+	Used in HoneypotViewer.mxml
+*/
 public function onSliderChange(event:Event):void
 {
 	const value:Number = event.currentTarget.value;

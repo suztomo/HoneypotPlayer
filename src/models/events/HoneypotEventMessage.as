@@ -30,7 +30,7 @@ package models.events
 		/* hosts are connected */
 		public var host1:String;
 		public var host2:String;
-		public var weight:int = -1;
+		public var port:uint;	
 		public var time:Number;
 		public var percentage:Number = -1; // Created by ReplayProcessor.dispatchHoneypotEvent
 
@@ -93,10 +93,13 @@ package models.events
 			this.addr = addr;
 		}
 		
-		public function buildConnectMessage(from_host:String, to_host:String):void
+		public function buildConnectMessage(from_host:String, to_host:String, addr:String, port:uint):void
 		{
 			this.host1 = from_host;
 			this.host2 = to_host;
+			this.addr = addr;
+			this.port = port;
+			trace(addr, port);
 		}
 		
 		public function toString():String{

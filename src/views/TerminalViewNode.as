@@ -15,7 +15,7 @@ package views
 	 *  Host has several terminals that represents tty inside its _terminalPanel. 
 	 *  Host highlights itself if its controller (CanvasManager) orders to do so. 
 	 */
-	public class Host extends UIComponent
+	public class TerminalViewNode extends UIComponent
 	{
 		public var term:Terminal;
 		public var terms:Object;
@@ -28,7 +28,7 @@ package views
 		
 		private var _terminalCount:int = 0;
 						
-		public function Host(name:String, terminalPanelCanvas:Canvas = null)
+		public function TerminalViewNode(name:String, terminalPanelCanvas:Canvas = null)
 		{
 			hostname = name;
 			super();

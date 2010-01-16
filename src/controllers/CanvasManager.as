@@ -12,7 +12,7 @@ package controllers
 	import mx.containers.Canvas;
 	import mx.core.UIComponent;
 	
-	import views.Host;
+	import views.TerminalViewNode;
 	
 	/**
 	 * This class manages TerminalViewer and objects on it,  e.g., views.Host class.
@@ -73,7 +73,7 @@ package controllers
 		
 		public function createHost(hostname:String):void
 		{
-			var host:Host = new Host(hostname, _terminalPanelCanvas);
+			var host:TerminalViewNode = new TerminalViewNode(hostname, _terminalPanelCanvas);
 			hosts[hostname] = host;
 			hostsArray.push(hostname);
 			hostCount++;
@@ -83,20 +83,20 @@ package controllers
 		
 		public function destroyHost(hostname:String):void
 		{
-			var host:Host = findHost(hostname);
+			var host:TerminalViewNode = findHost(hostname);
 			host.cease();
 			_hostScreen.removeChild(host);
 		}
 		
 		public function highlightHost(hostname:String):void
 		{
-			var host:Host = findHost(hostname);
+			var host:TerminalViewNode = findHost(hostname);
 			host.highlight();
 		}
 		
 		public function sendTermInput(hostname:String, ttyname:String, data:ByteArray):void
 		{
-			var host:Host = findHost(hostname);
+			var host:TerminalViewNode = findHost(hostname);
 			host.writeTTY(ttyname, data);
 		}
 		
@@ -105,8 +105,7 @@ package controllers
 		 */
 		public function sendNodeInfo(hostname:String, addr:String):void
 		{
-			Logger.log("Nodeinfo: " + hostname + " has " + addr + " / " + Object(this).constructor);
-			var host:Host = findHost(hostname);
+			var host:TerminalViewNode = findHost(hostname);
 			host.addr = addr;
 		}
 		
@@ -118,8 +117,8 @@ package controllers
 		
 		private function drawLineBetweenHosts(from_host:String, to_host:String):void
 		{
-			var h1:Host = findHost(from_host);
-			var h2:Host = findHost(to_host);
+			var h1:TerminalViewNode = findHost(from_host);
+			var h2:TerminalViewNode = findHost(to_host);
 			
 			var l:UIComponent = new UIComponent();
 			l.graphics.lineStyle(10, 0xFF1493, 1, false, LineScaleMode.VERTICAL,
@@ -142,9 +141,9 @@ package controllers
 			Finds host using its name.
 			If the host does not exist, creates a host with the name.
 		*/
-		public function findHost(hostname:String):Host
+		public function findHost(hostname:String):TerminalViewNode
 		{
-			var h:Host = hosts[hostname];
+			var h:TerminalViewNode = hosts[hostname];
 			if (h == null) {
 				/* Yasashisa */
 				createHost(hostname);
@@ -161,7 +160,7 @@ package controllers
 		public function alignHosts():void
 		{
 			var i:uint = 0;
-			var h:Host;
+			var h:TerminalViewNode;
 			var hn:String;
 
 			if (hostCount <= 1) { // one
@@ -193,7 +192,7 @@ package controllers
 		
 		public function flushAllBuffers():void
 		{
-			for each (var h:Host in hosts) {
+			for each (var h:TerminalViewNode in hosts) {
 				h.flushAllBuffers();
 			}
 		}

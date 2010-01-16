@@ -28,7 +28,6 @@
 		
 		private function saveRecord(record:Object):void
 		{
-			trace("saveRecord / " + Object(this).constructor);
 			_savedData.push(record);
 		}
 		
@@ -93,8 +92,6 @@
 				}
 			}
 			_activityData = array;
-//			trace("expandTail to " + limitTime);
-//			trace("last element's time: " + _activityData[_activityData.length-1][XAXIS]);
 		}
 			
 		

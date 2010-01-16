@@ -4,6 +4,10 @@ package controllers
 		This class is responsible gather messages that is related to
 		activitychart, and calculates the number of activity
 		between a certain period.
+		
+		When replaying, ActivityLineChart is notified slider's progress
+		directory in HoneypotViewerAction;
+		this manager only prepares initial message to the graph when it is replaying.
 	*/ 
 	import flash.events.TimerEvent;
 	import flash.utils.Timer;
@@ -31,7 +35,7 @@ package controllers
 			_activityLineChart = activityLineChart;
 			_timer = new Timer(1000); // milliseconds
 			_timer.addEventListener(TimerEvent.TIMER, onPeriod);
-			//_timer.start(); // for realtime
+			_timer.start(); // for realtime
 			_seriesNames = new Object();
 		}
 		
@@ -39,20 +43,27 @@ package controllers
 		{
 			_totalTime = value;
 		}
-				
+
+		/*
+		  Called by CanvasPlayer.seekByPercentage (replay only)
+		*/
 		public function seekByTime(time:Number):void
 		{
 			_activityLineChart.seekByTime(time);
 			_lastDispatch = Math.floor(time / _period) * _period;
 		}
-				
+
 		private function onPeriod(e:TimerEvent):void
 		{
 			flush();
 		}
 
+		/*
+			Realtime only
+		*/
 		public function put(message:HoneypotEventMessage):void
 		{
+			trace("put");
 			var host:String = message.hostname;
 			var syscall:String = message.syscall; // unused for activity
 			var time:Number = message.time;
@@ -71,13 +82,13 @@ package controllers
 		
 		public function flush():void
 		{
+			trace("flush");
 			// in order that a record have all series (hostname) entry to draw a chart
 			for (var h:String in _seriesNames) {
 				if (_currentRecord[h] == null) {
 					_currentRecord[h] = 0;
 				}
 			}
-			
 			sendRecord(_currentRecord);
 			_currentRecord = createRecord(_lastDispatch);
 			_lastDispatch += _period;
@@ -89,7 +100,9 @@ package controllers
 		}
 		
 		/*
-			Prepare for replaying
+			Prepares for replaying
+			Converts HoneypotEventMessage
+			 => Records for chart (Num of activity, by period and host)
 		*/
 		public function prepareMessages(messages:Array):void
 		{
@@ -98,6 +111,7 @@ package controllers
 			var msg:HoneypotEventMessage;
 			var records:Array = new Array();
 			var r:Object = createRecord(t);
+			_timer.stop(); // timer used only in realtime
 			while((msg = messages[i]) != null) {
 				if (msg.time < t + _period) {
 					// add 1 to the host in current record
@@ -112,7 +126,7 @@ package controllers
 					}
 					++i;				
 				} else {
-					// reflesh the record.
+					// reflesh the record for next period
 					for (var h:String in _seriesNames) {
 						if (r[h] == null) {
 							r[h] = 0;

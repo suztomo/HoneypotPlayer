@@ -61,7 +61,8 @@ package controllers
 			var i:uint = _seeker.seek(percentage);
 			_msgCursor = i;
 			dispatchFlushAllBuffers(); // clear before start replaying
-			processBlock();
+			if (_timer.running)
+				processBlock();
 		}
 		
 		/*
@@ -78,7 +79,7 @@ package controllers
 			// do nothing
 		}
 		
-		private function processBlock():void
+		private function processBlock(repeat:Boolean=true):void
 		{
 			var s:uint = 0;
 			var u:uint = 0;
@@ -105,8 +106,18 @@ package controllers
 			dispatchMessages(msgs);
 			
 			// wait the gap
-			_timer = new Timer(gap, 1);
-			_timer.addEventListener(TimerEvent.TIMER, timerHandler);
+			if (repeat) {
+				_timer = new Timer(gap, 1);
+				_timer.addEventListener(TimerEvent.TIMER, timerHandler);
+				_timer.start();
+			}
+		}
+		
+		public function stopTimer():void {
+			_timer.stop();
+		}
+		
+		public function startTimer():void {
 			_timer.start();
 		}
 		
@@ -156,7 +167,7 @@ package controllers
 				return;
 			}
 			var total:Number = _seeker.total; // milliseconds
-			var updateTimerSpan:Number = 500;
+			var updateTimerSpan:Number = 100;
 			var percentagePerSpan:Number = updateTimerSpan / total * 100;
 			// the callback is TerminalView.autoProcess 
 			sliderStartCallback(updateTimerSpan, percentagePerSpan);   

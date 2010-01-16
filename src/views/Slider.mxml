@@ -19,11 +19,15 @@
 			private var _updateTimerSpan:Number = 100 // milliseconds
 			private var _percentagePerSpan:Number = 10;
 			private var _timer:Timer;
+			private var _playing:Boolean;
 			
 			public static const REPLAY:String = "Replay";
 			public static const REALTIME:String = "Realtime";
 			
-			public var total:Number = -1;;
+			public static const LABEL_PLAY:String = "play";
+			public static const LABEL_STOP:String = "stop";
+			
+			public var _total:Number = -1;;
 			
 			/*
 				This MXML dispatches SliderSeekEvent.
@@ -50,11 +54,38 @@
 					this can be called after total is set
 					by HoneypotViewerAction.startCanvasPlayerWithFile
 				*/
-				if (total < 0) {
+				if (_total < 0) {
 					Logger.log("total is not initialized / " + Object(this).constructor);
 					return 1;
 				}
-				return total * slider.value / 100;
+				return _total * slider.value / 100;
+			}
+			
+			public function set total(value:Number):void
+			{
+				_total = Math.ceil(value);
+				totalTime.text = numberPrintf(_total); 
+			}
+			
+			private function numberPrintf(msec:Number):String
+			{
+				var t:uint = uint(msec / 1000);
+				var hour:uint = t / 60;
+				var minute:uint = t - hour * 60;
+				return timePrintf(hour, minute);
+			}
+			
+			private function timePrintf(hour:uint, minute:uint):String
+			{
+				var s:String = "";
+				if (hour < 10)
+					s += "0";
+				s += hour;
+				s += ":";
+				if (minute < 10)
+					s += "0";
+				s += minute;
+				return s;
 			}
 
 			public function setMode(mode:String):void
@@ -77,10 +108,10 @@
 					Logger.log("Invalid slider interaction /" + Object(this).constructor);
 					return;
 				}
-				_timer.stop();
-//				var e:SliderSeekEvent = new SliderSeekEvent(slider.value);
+				stopTimer();
 				dispatchEvent(new Event("sliderChanged"));
-				_timer.start();
+				if (_playing)
+					startTimer();
 			}
 			
 			public function stop():void
@@ -95,7 +126,23 @@
 				_percentagePerSpan = percentagePerSpan;
 				_timer = new Timer(_updateTimerSpan); // call each interval
 				_timer.addEventListener(TimerEvent.TIMER, this.updateSlider);
+				playButton.enabled = true;
+				startTimer();
+				_playing = true;
+			}
+			
+			private function stopTimer():void
+			{
+				_timer.stop();
+				playButton.label = LABEL_PLAY;
+				dispatchEvent(new Event("sliderStop"));
+			}
+			
+			private function startTimer():void
+			{
 				_timer.start();
+				playButton.label = LABEL_STOP;
+				dispatchEvent(new Event("sliderStart"));
 			}
 			
 			public function updateSlider(e:TimerEvent):void
@@ -111,16 +158,31 @@
 			public function seek(value:Number):void
 			{
 				if (value < 0 || value > 100) {
-					_timer.stop();
+					stopTimer();
 					return;
 				}
 				slider.value = value;
-			}			
+				currentTime.text = numberPrintf(_total * value / 100);
+			}
+			
+			private function playToggle():void
+			{
+				_playing = !_playing;
+				if (_playing) {
+					startTimer();
+				} else {
+					stopTimer();
+				}
+			}
 
 		]]>
 	</mx:Script>
-		<mx:HBox paddingLeft="200">
+		<mx:HBox paddingLeft="150">
+			<mx:Button label="stop" id="playButton" click="playToggle();" enabled="false" />
 			<mx:HSlider width="800" id="slider" minimum="0" maximum="100"
-				value="0" tickColor="black" change="sliderChanged();" />		
+				value="0" tickColor="black" change="sliderChanged();" />
+			<mx:Text text="00:00" id="currentTime" />
+			<mx:Text text="/" />
+			<mx:Text text="00:00" id="totalTime" />	
 		</mx:HBox>
 </mx:Canvas>
