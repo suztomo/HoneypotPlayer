@@ -19,6 +19,7 @@ package views
 		
 		public var tty_name:String;
 		private var bytes:ByteArray;
+		private var f:UIComponent;
 		public function Terminal(_tty_name:String)
 		{
 			terminal = new org.partty.mxml.Terminal();
@@ -28,6 +29,12 @@ package views
 			terminal.dataProvider = this;
 			bytes = new ByteArray();
 			addEventListener(MouseEvent.CLICK, onClick);
+			showFrame();
+		}
+		
+		public function resize(cols:uint, rows:uint):void
+		{
+			terminal.resize(cols, rows);
 			showFrame();
 		}
 		
@@ -47,10 +54,11 @@ package views
 		
 		private function showFrame():void
 		{
-			var u:UIComponent = new UIComponent;
-			u.graphics.lineStyle(2, 0xDD1111);
-			u.graphics.drawRect(0, 0, terminal.width, terminal.height);
-			addChild(u);
+			if (f) removeChild(f);
+			f = new UIComponent;
+			f.graphics.lineStyle(2, 0xDD1111);
+			f.graphics.drawRect(0, 0, terminal.width, terminal.height);
+			addChild(f);
 		}
 
 		private function appendBytes(src:ByteArray) :void

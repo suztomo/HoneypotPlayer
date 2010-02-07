@@ -27,6 +27,10 @@ package models.events
 		public var ttyoutput: ByteArray;
 		public var ttyoutput_saved_position:uint; /* used to file saving */
 		
+		/* term resize */
+		public var cols:uint;
+		public var rows:uint;
+		
 		/* hosts are connected */
 		public var host1:String;
 		public var host2:String;
@@ -42,6 +46,7 @@ package models.events
 		
 		/* node information */
 		public var addr:String;
+		
 
 		public function HoneypotEventMessage(k:String = "")
 		{
@@ -99,6 +104,14 @@ package models.events
 			this.host2 = to_host;
 			this.addr = addr;
 			this.port = port;
+		}
+		
+		public function buildTermResizeMessage(hostName:String, ttyName:String, cols:uint, rows:uint):void
+		{
+			this.hostname = hostName;
+			this.ttyname = ttyName;
+			this.cols = cols;
+			this.rows = rows;
 		}
 		
 		public function toString():String{

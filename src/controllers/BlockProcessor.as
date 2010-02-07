@@ -32,6 +32,7 @@ package controllers
 		public static const MESSAGE_SYSCALL:uint = 3;
 		public static const MESSAGE_NODE_INFO:uint = 4;
 		public static const MESSAGE_CONNECT:uint = 5;
+		public static const MESSAGE_TTY_RESIZE:uint = 6;
 
 		public static const HEADER_SIZEOF_SYSCALL_NAME:uint = 16;
 		public static const HEADER_SIZEOF_HPNODE:uint = 4;
@@ -39,6 +40,8 @@ package controllers
 		public static const HEADER_SIZEOF_SEC:uint = 4;
 		public static const HEADER_SIZEOF_MSEC:uint = 4;
 		public static const HEADER_SIZEOF_TTYDATASIZE:uint = 4;
+		
+		public static const HEADER_SIZEOF_ROWS:uint = 2;
 
 		public static const HEADER_SIZEOF_ADDR:uint = 4;
 
@@ -114,6 +117,9 @@ package controllers
 						break;
 					case MESSAGE_TTY_OUTPUT:
 						processTTYData(block);
+						break;
+					case MESSAGE_TTY_RESIZE:
+						processTTYResize(block);
 						break;
 					case MESSAGE_ROOT_PRIV:
 						processRootPriv(block);
@@ -222,6 +228,33 @@ package controllers
 			var port:uint = bytes.readUnsignedShort();
 			var message:HoneypotEventMessage = new HoneypotEventMessage(HoneypotEvent.CONNECT);
 			message.buildConnectMessage(from_host, to_host, addr, port);
+			dispatchEventMessage(message);
+		}
+		
+		/*
+		  | hp_node | tty_name |cols|rows| 
+		  |    4    |    7     | 2  | 2  |
+		*/
+		public function processTTYResize(block:Block):void
+		{
+			var bytes:ByteArray = block.bytes;
+			var hp_node:uint;
+			var tty_name:String;
+			var cols:uint;
+			var rows:uint;
+			if (bytes.bytesAvailable != HEADER_SIZEOF_HPNODE + HEADER_SIZEOF_TTYNAME
+				+ HEADER_SIZEOF_ROWS * 2) {
+				Logger.log("Invalid bytes available " + bytes.bytesAvailable + " / processTTYResize");
+				return;
+			}
+			
+			hp_node = bytes.readUnsignedInt();
+			tty_name = bytes.readMultiByte(HEADER_SIZEOF_TTYNAME, "utf-8");
+			cols = bytes.readUnsignedShort();
+			rows = bytes.readUnsignedShort();
+			var to_host:String = HOSTNAME_PREFIX + String(hp_node);
+			var message:HoneypotEventMessage = new HoneypotEventMessage(HoneypotEvent.HOST_TERM_RESIZE);
+			message.buildTermResizeMessage(to_host, tty_name, cols, rows);
 			dispatchEventMessage(message);
 		}
 		

@@ -26,6 +26,11 @@ package models.events
 		static public const HOST_TERM_INPUT: String = "terminalInput";
 		
 		/**
+		 * Event type for when terminal resized 
+		 */
+		static public const HOST_TERM_RESIZE:String = "terminalResize";
+		
+		/**
 		 * Event type for when the host is invaded.
 		*/
 		static public const HOST_INVADED: String = "invaded";

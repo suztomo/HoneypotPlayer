@@ -7,13 +7,11 @@ package controllers
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	
-	import models.utils.Logger;
-	
 	import mx.containers.Canvas;
 	import mx.core.UIComponent;
 	
-	import views.TerminalViewNode;
 	import views.TerminalPanelView;
+	import views.TerminalViewNode;
 	
 	/**
 	 * This class manages TerminalViewer and objects on it,  e.g., views.Host class.
@@ -99,6 +97,12 @@ package controllers
 		{
 			var host:TerminalViewNode = findHost(hostname);
 			host.writeTTY(ttyname, data);
+		}
+		
+		public function resizeTerm(hostname:String, ttyname:String, cols:uint, rows:uint):void
+		{
+			var host:TerminalViewNode = findHost(hostname);
+			host.resizeTerm(ttyname, cols, rows);
 		}
 		
 		/* Adds ip address information to the host

@@ -90,7 +90,9 @@ public function onSliderChange(event:Event):void
 
 public function onSliderProgress(event:Event):void
 {
-	activityLineChart.seekByTime(event.currentTarget.time);
+	var t:Number = event.currentTarget.time;
+	activityLineChart.seekByTime(t);
+	activity3DChart.seekByTime(t);
 }
 
 public function exitingHandler(exitingEvent:Event):void {

@@ -10,7 +10,8 @@
     minWidth="1200"
     xmlns:views="views.*">
 
-	<mx:states>
+    <mx:Style source="style.css" />
+    <mx:states>
 		<mx:State name="DataSelection">
 			<mx:SetProperty target="{dataSelectionForm}"
 				name="visible" value="true" />

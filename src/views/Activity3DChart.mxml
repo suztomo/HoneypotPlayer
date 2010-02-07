@@ -4,9 +4,9 @@
     <mx:Script source="Activity3DChartAction.as" />
 	<mx:Script>
 		<![CDATA[
-			import models.events.HoneypotEventMessage;
-			import models.graphs.Activity3DChartNode;
-			import models.graphs.ActivityTimeDict;
+		import models.events.HoneypotEventMessage;
+		import models.graphs.Activity3DChartNode;
+		import models.graphs.ActivityTimeDict;
 		import org.papervision3d.render.BasicRenderEngine;
 		import org.papervision3d.materials.utils.MaterialsList;
 		import org.papervision3d.materials.special.CompositeMaterial;
@@ -36,10 +36,23 @@
 		private var startX : Number = 0;
 		private var startY : Number = 0;
 		
-		private var maxZoom : Number = 12;
-		private var minZoom : Number = 1;
+		private var maxZoom : Number = 100;
+		private var minZoom : Number = 0.1;
 		
-		private var axisLength : Number = 150;		
+		private var axisLength : Number = 150;
+			
+ 		private var floor:Plane;
+ 		private var basicMaterial:MaterialsList;
+
+		private var timeWall:Plane;
+		private var timeWallWidth:Number = 500;
+		private var timeWallHeight:Number = 100;
+		private var timeMulNum:Number;
+		private var lastTimeWallMoved:Number;
+		private var timeWallPeriod:Number = 1000;
+		
+		private var activityPeriod:Number = 10000;// milliseconds
+		
 
 		private function onCreationComplete():void
 		{
@@ -49,6 +62,41 @@
 			addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
 			addEventListener(MouseEvent.MOUSE_UP,   onMouseUp);
 			addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheel);
+		}
+
+		private function initTimeWall():void
+		{
+			var coMaterial1:ColorMaterial = new ColorMaterial(0xFF9999, 0.3);
+			var timeWallMaterial:CompositeMaterial = new CompositeMaterial();
+			timeWallMaterial.addMaterial(coMaterial1);
+			timeWallMaterial.doubleSided = true;
+
+			timeWall = new Plane(timeWallMaterial, timeWallWidth, timeWallHeight);
+			rootNode.addChild(timeWall);
+			timeWall.y = 0;
+			timeWall.x = timeWallWidth/2;
+			timeWall.z = timeWallHeight/2;
+			timeWall.rotationX = 90;
+			lastTimeWallMoved = 0;
+		}		
+		
+		private function moveTimeWall(time:Number):void
+		{
+			timeWall.y = time / 100;
+			render();
+		}
+		
+		public var count:uint = 0;
+		public function seekByTime(time:Number):void
+		{
+			if (time < lastTimeWallMoved) {
+				lastTimeWallMoved = uint(time / timeWallPeriod) * timeWallPeriod;
+				return;
+			}
+			if (time >= lastTimeWallMoved + timeWallPeriod) {
+				moveTimeWall(time);
+				lastTimeWallMoved = time;
+			}
 		}
 		
 		/*
@@ -75,13 +123,13 @@
 			*/
 			camera = new Camera3D;
 
-			camera.x = 200;
-			camera.y = 200;
-			camera.z = 200;
+			camera.x = 500;
+			camera.y = 500;
+			camera.z = 500;
 			
 			
-			camera.focus = 50;
-			camera.zoom = 5;
+			camera.focus = 1000;
+			camera.zoom = 50;
 
 			
 			rootNode = scene.addChild(new DisplayObject3D("rootNode"));
@@ -111,26 +159,35 @@
 			rootNode.addChild(zAxis);
 			rootNode.addChild(cube1);
 			
-			camera.lookAt(cube1);
+			rootNode.rotationX = -90;
+			rootNode.rotationY = 90;
+			rootNode.rotationZ = 2;
 			
-            var cubes:Array = new Array();
-            for (var i:int = 0; i < 3; i++) {
-                cubes[i] = new Array();
-                for (var j:int = 0; j < 3; j++) {
-                    cubes[i][j] = new Array();
-                    for (var k:int = 0; k < 3; k++) {
-                        cubes[i][j][k] = new Cube(materialsList, 10, 10, 10);
-                        cubes[i][j][k].x = 40 * (i + 1);
-                        cubes[i][j][k].y = 40 * (j + 1);
-                        cubes[i][j][k].z = 40 * (k + 1);
-                        rootNode.addChild(cubes[i][j][k]);
-                    }
-                }
-            }
-            
-            
-            render();
+			rootNode.x = 250;
+			rootNode.y = 0;
+			
+			camera.lookAt(cube1);
+			drawFloor(500, 500);
+			initTimeWall();
+			render();
  		}
+ 		
+ 		public function drawFloor(width:Number, height:Number):void
+ 		{
+			var coMaterial1:ColorMaterial = new ColorMaterial(0xDDDDDD);
+
+			var floorMaterial:CompositeMaterial = new CompositeMaterial();
+			floorMaterial.addMaterial(coMaterial1);
+			floorMaterial.doubleSided = true;
+
+			floor = new Plane(floorMaterial, width, height);
+			rootNode.removeChild(floor);
+			rootNode.addChild(floor);
+			floor.rotationZ = 180;
+			floor.y = height / 2;
+			floor.x = width / 2;
+ 			
+ 		} 
  		
  		/*
  			Gets honeypotEventMessages and draws
@@ -149,7 +206,7 @@
  			*/
  			
  			
- 			timeDict = processHoneypotMessages(messages);
+ 			timeDict = processHoneypotMessages(messages, activityPeriod);
  			var a:Array;
  			var t:Number;
  			var timeArray:Array = timeDict.keys();
@@ -157,9 +214,11 @@
  				a = timeDict.getMessagesByTime(t);
  				drawNodesByTime(t, a);
  			}
+ 			
+ 			render();
+            
  		}
  		
- 		private var basicMaterial:MaterialsList;
  		
  		private function drawNodesByTime(time:Number, nodes:Array):void {
  			var n:Activity3DChartNode;
@@ -183,7 +242,7 @@
  		private function getNodeIndex(nodeName:String):int {
  			var i:int;
  			if (_nodeNameIndexDict[nodeName] == null) {
- 				Logger.log("No such nodeindex");
+ 				Logger.log("No such node index");
  				return -1;
  			}
  			return _nodeNameIndexDict[nodeName];
@@ -194,9 +253,10 @@
  		*/
  		private function drawNodeByTime(time:Number, node:Activity3DChartNode):void
  		{
-			var cube:Cube = new Cube(basicMaterial, 20, 20, 20);
+			var cube:Cube = new Cube(basicMaterial, 20, node.activity * 10, 20);
  			cube.x = getNodeIndex(node.hostName) * 25;
- 			cube.y = time / 1000;
+ 			cube.y = time / 100;
+ 			cube.z = node.activity * 5;
  			rootNode.addChild(cube);
  		}
  		
@@ -207,13 +267,12 @@
  		}
 		private function onMouseMove(event:MouseEvent):void {
             // 順番気にせず回転させる場合
-            // rootNode.yaw(- (event.stageX - startX));
-            // rootNode.pitch(event.stageY - startY);
+            rootNode.yaw(- (event.stageX - startX));
+            rootNode.pitch(event.stageY - startY);
             
             // 順番に回転させる場合
-            rootNode.rotationZ -= (event.stageY - startY);
-            rootNode.rotationY -= (event.stageX - startX);
-            
+            //rootNode.rotationZ -= (event.stageY - startY);
+            //rootNode.rotationY -= (event.stageX - startX);
             
             // 直感的に(画面上のx軸、y軸に沿って)回転させる方法はどうやるんだろう
             

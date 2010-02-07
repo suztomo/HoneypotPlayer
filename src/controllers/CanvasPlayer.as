@@ -125,6 +125,7 @@ package controllers
 		private function onHoneypotEvent(ev:HoneypotEvent):void
 		{
 			var hostname:String;
+			var ttyname:String;
 			switch(ev.kind) {
 				case HoneypotEvent.HOST_CREATED:
 					hostname = ev.message.hostname;
@@ -136,10 +137,18 @@ package controllers
 					break;
 				case HoneypotEvent.HOST_TERM_INPUT:
 					hostname = ev.message.hostname;
-					var ttyname:String = ev.message.ttyname;
+					ttyname = ev.message.ttyname;
 					var data:ByteArray = ev.message.ttyoutput;
 					manager.sendTermInput(hostname, ttyname, data);
 					break;
+				case HoneypotEvent.HOST_TERM_RESIZE:
+					hostname = ev.message.hostname;
+					ttyname = ev.message.ttyname;
+					var cols:uint = ev.message.cols;
+					var rows:uint = ev.message.rows;
+					trace("term resize");
+					manager.resizeTerm(hostname, ttyname, cols, rows);
+					break;					
 				case HoneypotEvent.FLUSH_ALL_BUFFERS:
 					flushAllBuffers();
 					break;
