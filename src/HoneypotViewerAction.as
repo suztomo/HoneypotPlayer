@@ -67,6 +67,7 @@ public function startCanvasPlayerWithFile(filePath:String):void
 	//terminalView.addEventListener(SliderSeekEvent.TYPE, sliderSeekHandler);
 	_activityChartManager = new ActivityChartManager(activityLineChart, 100);
 	player.addActivityChartManager(_activityChartManager);
+	player.addActivity3DChartManager(activity3DChart);
 	activityGrid.setDispatcher(player.dispatcher);
 	player.start();
 	slider.addEventListener("sliderStop", player.stopReplayTimer);

@@ -7,8 +7,8 @@ package controllers
 	import models.events.*;
 	import models.utils.Logger;
 	
+	import views.Activity3DChart;
 	import views.TerminalView;
-	import views.TerminalPanelView;
 	
 	/*
 		This class manages two components: CanvasManager and BlockProcessor.
@@ -28,6 +28,7 @@ package controllers
 		private var _dispatcher:HoneypotEventDispatcher;
 		private var _activityChartManager:ActivityChartManager;
 		private var _total:Number = -1;
+		private var _activity3DChartManager:Activity3DChart;
 		
 		public function get dispatcher():HoneypotEventDispatcher
 		{
@@ -49,8 +50,20 @@ package controllers
 			  ReplayProcessor knows whole activity message and sends to the chart
 			*/
 			if (_dispatcher.kind == HoneypotEventDispatcher.REPLAY) {
-				
-				(_dispatcher as ReplayProcessor).prepareActivityChart(_activityChartManager);
+				var d:ReplayProcessor = _dispatcher as ReplayProcessor;
+				d.prepareActivityChart(_activityChartManager);
+			}
+		}
+		
+		public function addActivity3DChartManager(activity3DChart:Activity3DChart):void
+		{
+			_activity3DChartManager = activity3DChart;
+			if (_dispatcher == null) {
+				Logger.log("Invalid call sequence / " + Object(this).constructor);
+			}
+			if (_dispatcher.kind == HoneypotEventDispatcher.REPLAY) {
+				var d:ReplayProcessor = _dispatcher as ReplayProcessor;
+				d.prepareActivity3DChart(activity3DChart);
 			}
 		}
 		

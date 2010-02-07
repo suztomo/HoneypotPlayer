@@ -9,6 +9,8 @@ package controllers
 	import models.events.*;
 	import models.utils.Logger;
 	
+	import views.Activity3DChart;
+	
 	
 	/*
 		Dispatches HoneypotEvent according to the contents of the file.
@@ -186,6 +188,11 @@ package controllers
 				}
 			}
 			amanager.prepareMessages(ary);
+		}
+		
+		public function prepareActivity3DChart(amanager:Activity3DChart):void
+		{
+			amanager.initGraph(_messages);
 		}
 		
 		public function get total():Number

@@ -59,7 +59,6 @@
 	</mx:Script>
 
 	<views:DataSelectionForm id="dataSelectionForm" height="100%" width="100%" />
-	<views:Activity3DChart id="activity3DChart" />			
 	<mx:VBox>
 		<mx:TabNavigator id="viewTab" height="100%" creationPolicy="all">
 			<mx:VBox label="Terminal View"  >
@@ -73,6 +72,7 @@
 				<views:ActivityLineChart id="activityLineChart" />			
 			</mx:VBox>
 			<mx:VBox label="Activity 3D Chart" >
+				<views:Activity3DChart id="activity3DChart" />			
 			</mx:VBox>
 			<mx:VBox label="Console">
 				<views:Console id="console" />

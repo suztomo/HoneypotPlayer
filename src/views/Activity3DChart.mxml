@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="95%" height="95%"
 	creationComplete="onCreationComplete()">
+    <mx:Script source="Activity3DChartAction.as" />
 	<mx:Script>
 		<![CDATA[
-			import org.papervision3d.render.BasicRenderEngine;
-			import org.papervision3d.materials.utils.MaterialsList;
-			import org.papervision3d.materials.special.CompositeMaterial;
-			import mx.core.UIComponent;
-		import controllers.ActivityChartManager;
-		import models.utils.Logger;
-	
-		import mx.charts.series.LineSeries;
-		import mx.collections.ArrayCollection;
-
+			import models.events.HoneypotEventMessage;
+			import models.graphs.Activity3DChartNode;
+			import models.graphs.ActivityTimeDict;
+		import org.papervision3d.render.BasicRenderEngine;
+		import org.papervision3d.materials.utils.MaterialsList;
+		import org.papervision3d.materials.special.CompositeMaterial;
 		import org.papervision3d.scenes.*;
 		import org.papervision3d.objects.*;
 		import org.papervision3d.objects.primitives.*;
@@ -20,8 +17,14 @@
 		import org.papervision3d.materials.*;
 		import org.papervision3d.view.Viewport3D;
 		import org.papervision3d.events.InteractiveScene3DEvent;
-		
 		import org.papervision3d.scenes.Scene3D;
+		import mx.core.UIComponent;
+		import controllers.ActivityChartManager;
+		import models.utils.Logger;
+
+		import mx.charts.series.LineSeries;
+		import mx.collections.ArrayCollection;
+
 
 		private var container : UIComponent;
 		private var viewport : Viewport3D;
@@ -36,9 +39,7 @@
 		private var maxZoom : Number = 12;
 		private var minZoom : Number = 1;
 		
-		private var axisLength : Number = 150;
-		
-		
+		private var axisLength : Number = 150;		
 
 		private function onCreationComplete():void
 		{
@@ -80,7 +81,7 @@
 			
 			
 			camera.focus = 50;
-			camera.zoom = 1;
+			camera.zoom = 5;
 
 			
 			rootNode = scene.addChild(new DisplayObject3D("rootNode"));
@@ -99,6 +100,7 @@
 			compoMaterial.doubleSided = true;
 			
 			var materialsList:MaterialsList = new MaterialsList();
+			basicMaterial = materialsList;
 			materialsList.addMaterial(compoMaterial, "all");
 			
 			var cube1:Cube = new Cube(materialsList, 20, 20, 20);
@@ -128,6 +130,74 @@
             
             
             render();
+ 		}
+ 		
+ 		/*
+ 			Gets honeypotEventMessages and draws
+ 		*/
+ 		public function initGraph(messages:Array):void
+ 		{
+ 			var timeDict:ActivityTimeDict;
+ 			var msg:HoneypotEventMessage;
+ 			var hostNames:Array = new Array;
+ 			for each(msg in messages) {
+ 				hostNames.push(msg.hostname ? msg.hostname : msg.host1);
+ 			}
+ 			prepareNodeIndex(hostNames);
+ 			/*
+ 				time => array of Activity3DChartnode
+ 			*/
+ 			
+ 			
+ 			timeDict = processHoneypotMessages(messages);
+ 			var a:Array;
+ 			var t:Number;
+ 			var timeArray:Array = timeDict.keys();
+ 			for each(t in timeArray) {
+ 				a = timeDict.getMessagesByTime(t);
+ 				drawNodesByTime(t, a);
+ 			}
+ 		}
+ 		
+ 		private var basicMaterial:MaterialsList;
+ 		
+ 		private function drawNodesByTime(time:Number, nodes:Array):void {
+ 			var n:Activity3DChartNode;
+ 			for each (n in nodes) {
+ 				drawNodeByTime(time, n);
+ 			}
+ 		}
+ 		
+ 		private var _nodeNameIndexDict:Object = new Object;
+ 		private function prepareNodeIndex(nodeNames:Array):void {
+ 			var nodeName:String;
+ 			var i:int = 0;
+ 			for each(nodeName in nodeNames) {
+ 				if (_nodeNameIndexDict[nodeName] == null) {
+ 					_nodeNameIndexDict[nodeName] = i;
+ 					i++;
+ 				}
+ 			}
+ 		}
+ 		
+ 		private function getNodeIndex(nodeName:String):int {
+ 			var i:int;
+ 			if (_nodeNameIndexDict[nodeName] == null) {
+ 				Logger.log("No such nodeindex");
+ 				return -1;
+ 			}
+ 			return _nodeNameIndexDict[nodeName];
+ 		}
+ 		
+ 		/*
+ 			Draws a node
+ 		*/
+ 		private function drawNodeByTime(time:Number, node:Activity3DChartNode):void
+ 		{
+			var cube:Cube = new Cube(basicMaterial, 20, 20, 20);
+ 			cube.x = getNodeIndex(node.hostName) * 25;
+ 			cube.y = time / 1000;
+ 			rootNode.addChild(cube);
  		}
  		
  		private function onMouseDown(event:MouseEvent):void {
@@ -170,7 +240,6 @@
 			if (camera.zoom < 1) { 
 				camera.zoom = 1;
 			}
-			Logger.log("zoom: " + camera.zoom);
 			render();
 		}
 		private function onMouseUp(event:MouseEvent):void {
