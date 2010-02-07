@@ -13,6 +13,7 @@ package controllers
 	import mx.core.UIComponent;
 	
 	import views.TerminalViewNode;
+	import views.TerminalPanelView;
 	
 	/**
 	 * This class manages TerminalViewer and objects on it,  e.g., views.Host class.
@@ -31,7 +32,7 @@ package controllers
 		private var hostsArray:Array;
 		private var _lineScreen:UIComponent;
 		private var _hostScreen:UIComponent;
-		private var _terminalPanelCanvas:Canvas;
+		private var _terminalPanelCanvas:TerminalPanelView;
 
 		public var hostCount:uint = 0;
 		public var R:Number = 300;
@@ -46,7 +47,7 @@ package controllers
 			TerminalView.canvas will be the screen in CanvasPlayer(screen) 
 			in HoneypotViewerAction.as 
 		*/
-		public function CanvasManager(s:Canvas, terminalPanelCanvas:Canvas)
+		public function CanvasManager(s:Canvas, terminalPanelCanvas:TerminalPanelView)
 		{
 			screen = s;
 			centerX = s.width / 2;
@@ -125,7 +126,6 @@ package controllers
                                CapsStyle.NONE, JointStyle.MITER, 10);
 			l.graphics.moveTo(h1.x, h1.y);
 			l.graphics.lineTo(h2.x, h2.y);
-			trace(h1.x + "," + h2.y + " - " + h2.x + "," + h2.y);
 			l.graphics.endFill();
 			_lineScreen.addChild(l);
 			var t:Timer = new Timer(3000, 1);
@@ -133,7 +133,6 @@ package controllers
 				_lineScreen.removeChild(l);
 			});
 			t.start();
-			Logger.log("drawd a line");
 		}
 		
 		

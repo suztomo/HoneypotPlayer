@@ -63,7 +63,6 @@ package controllers
 		*/
 		public function put(message:HoneypotEventMessage):void
 		{
-			trace("put");
 			var host:String = message.hostname;
 			var syscall:String = message.syscall; // unused for activity
 			var time:Number = message.time;
@@ -82,7 +81,6 @@ package controllers
 		
 		public function flush():void
 		{
-			trace("flush");
 			// in order that a record have all series (hostname) entry to draw a chart
 			for (var h:String in _seriesNames) {
 				if (_currentRecord[h] == null) {

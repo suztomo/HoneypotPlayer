@@ -57,25 +57,29 @@
 			}
 		]]>
 	</mx:Script>
-    
+
 	<views:DataSelectionForm id="dataSelectionForm" height="100%" width="100%" />
+	<views:Activity3DChart id="activity3DChart" />			
 	<mx:VBox>
 		<mx:TabNavigator id="viewTab" height="100%" creationPolicy="all">
 			<mx:VBox label="Terminal View"  >
-					<views:TerminalView id="terminalView" slider="{slider}" />
+					<views:TerminalView id="terminalView" slider="{slider}"
+						 terminalPanelCanvas="{terminalPanelCanvas}"/>
 			</mx:VBox>
 			<mx:VBox label="Activity Grid" >
-				<views:ActivityGrid id="activityGrid" />
+				<views:ActivityGrid id="activityGrid" terminalPanelCanvas="{terminalPanelCanvas}" />
 			</mx:VBox>
 			<mx:VBox label="Activity Chart" >
 				<views:ActivityLineChart id="activityLineChart" />			
+			</mx:VBox>
+			<mx:VBox label="Activity 3D Chart" >
 			</mx:VBox>
 			<mx:VBox label="Console">
 				<views:Console id="console" />
 			</mx:VBox>
 		</mx:TabNavigator>
 		<views:Slider id="slider" sliderChanged="onSliderChange(event);" 
-			sliderProgress="onSliderProgress(event)" />	
+			sliderProgress="onSliderProgress(event)" />
 	</mx:VBox>
-
+	<views:TerminalPanelView id="terminalPanelCanvas" width="90%" height="90%" visible="true" />
 </mx:WindowedApplication>

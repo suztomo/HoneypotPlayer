@@ -16,6 +16,9 @@
 		private var _activityData:ArrayCollection;
 		private var _timer:Timer;
 		
+		[Bindable]
+		private var _drawGraph:Boolean = false;
+		
 		private var _savedData:Array;
 		private var _activityDataStartIndex:uint; // index in savedData.
 
@@ -82,6 +85,9 @@
 			
 			var array:ArrayCollection = _activityData;
 			var i:uint;
+			
+			if (!_drawGraph) return;
+			
 			for (i = startIndex; i < _savedData.length; ++i) {
 				const r:Object = _savedData[i];
 				const t:Number = r[XAXIS];
@@ -186,7 +192,6 @@
 				Logger.log("invalid record / " + Object(this).constructor);
 				return;
 			}
-			trace(record[XAXIS]);
 			_activityData.addItem(record);
 		}
 		
@@ -214,18 +219,29 @@
 			s.displayName = displayName;
 			var currentSeries:Array = chart.series;
 			currentSeries.push(s);
+			
 			chart.series = currentSeries;
+		}
+		
+		private function toggleDraw():void
+		{
+			_drawGraph = !_drawGraph;
+			trace(_drawGraph);
 		}
 			
 			
 		]]>
 	</mx:Script>
 	<mx:Panel title="Activity Line Chart"  width="100%" height="95%" >
-		<mx:LineChart id="chart" dataProvider="{_activityData}"
-			showDataTips="true" width="100%" height="95%" >
-			<mx:horizontalAxis>
-				<mx:LinearAxis autoAdjust="false" />
-			</mx:horizontalAxis>
-		</mx:LineChart>
+		<mx:VBox width="100%" height="100%" >
+			<mx:CheckBox id="drawGraphCheck" label="Draw Graph" selected="{_drawGraph}"
+				click="toggleDraw()" />
+			<mx:LineChart id="chart" dataProvider="{_activityData}"
+				showDataTips="true" width="100%" height="95%" >
+				<mx:horizontalAxis>
+					<mx:LinearAxis autoAdjust="false" />
+				</mx:horizontalAxis>
+			</mx:LineChart>			
+		</mx:VBox>
 	</mx:Panel>	
 </mx:Canvas>

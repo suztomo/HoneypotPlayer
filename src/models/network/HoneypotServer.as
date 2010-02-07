@@ -155,7 +155,6 @@ package models.network
 			if (ok) {
 				dispatchProgressEvent();
 			} else {
-				trace("not ok");
 			}
 		}
 		

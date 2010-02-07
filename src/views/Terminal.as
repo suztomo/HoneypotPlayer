@@ -28,6 +28,7 @@ package views
 			terminal.dataProvider = this;
 			bytes = new ByteArray();
 			addEventListener(MouseEvent.CLICK, onClick);
+			showFrame();
 		}
 		
 		public function writeBytes(src:ByteArray, offset:uint=0, length:uint=0) :void
@@ -42,6 +43,14 @@ package views
 				bytes.length
 			);
 			dispatchEvent(ev);
+		}
+		
+		private function showFrame():void
+		{
+			var u:UIComponent = new UIComponent;
+			u.graphics.lineStyle(2, 0xDD1111);
+			u.graphics.drawRect(0, 0, terminal.width, terminal.height);
+			addChild(u);
 		}
 
 		private function appendBytes(src:ByteArray) :void

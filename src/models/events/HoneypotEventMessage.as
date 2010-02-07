@@ -99,7 +99,6 @@ package models.events
 			this.host2 = to_host;
 			this.addr = addr;
 			this.port = port;
-			trace(addr, port);
 		}
 		
 		public function toString():String{

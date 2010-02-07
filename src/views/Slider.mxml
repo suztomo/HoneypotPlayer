@@ -35,6 +35,8 @@
 			private function onCreationComplete():void
 			{
 				setCurrentState("Realtime");
+				
+				
 			}
 			
 			public function get value():Number

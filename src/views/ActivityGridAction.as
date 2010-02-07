@@ -4,21 +4,26 @@ import controllers.HoneypotEventDispatcher;
 import flash.events.TimerEvent;
 import flash.utils.Timer;
 
-import models.events.HoneypotEvent;
-import models.events.HoneypotEventMessage;
 
 import mx.core.UIComponent;
 
+import com.dncompute.graphics.GraphicsUtil;
+
+import models.events.HoneypotEvent;
+import models.events.HoneypotEventMessage;
+
 import views.ActivityGridNode;
+import views.TerminalPanelView;
 
 public static var LINE_COLOR:uint = 0xFF3300;
-public static var LINE_DELAY:Number = 500; // milliseconds
+public static var LINE_DELAY:Number = 2000; // milliseconds
 
 private var _hosts:Object; // name => node
 private var _nodeArray:Array;
 
 private var _lineScreen:UIComponent;
 private var _nodeScreen:UIComponent;
+private var _nodeInfoScreen:UIComponent;
 
 private var _nodeInterval:Number = 150;
 
@@ -31,21 +36,35 @@ private var _nodeXLimit:Number, _nodeYLimit:Number;
 
 private var _autoAlignTimer:Timer;
 
+/*
+	Passing a reference to the component.
+	e.g. <view:ActivityGrid terminalPanelCanvas="{terminalPanelCanvas}" /> ...
+*/
+public var terminalPanelCanvas:TerminalPanelView;
+
+
 public function onCreationComplete():void
 {
 	_hosts = new Object();
 	_nodeArray = new Array; 
 	_lineScreen = new UIComponent;
 	_nodeScreen = new UIComponent;
+	_nodeInfoScreen = new UIComponent;
 	canvas.addChild(_nodeScreen);
 	canvas.addChild(_lineScreen);
+	canvas.addChild(_nodeInfoScreen);
 	_nodeXLimit = width;
 	_nodeYLimit = height;
+	
+	if (terminalPanelCanvas == null) {
+		throw new Error("terminalPanelCanvas is not specified");
+	}
 	_autoAlignTimer = new Timer(2000);
 	_autoAlignTimer.addEventListener(TimerEvent.TIMER, function():void{
 		alignNodes();
 	});
 	_autoAlignTimer.start();
+	
 }
 
 public function setDispatcher(dispatcher:HoneypotEventDispatcher):void
@@ -103,7 +122,13 @@ private function alignNodes():void
 
 private function addNode(nodeName:String, addr:String = "None"):void
 {
-	var node:ActivityGridNode = new ActivityGridNode(nodeName, addr);
+	var node:ActivityGridNode = _hosts[nodeName];
+	if (node) {
+		node.addr = addr;
+		return;
+	}
+	node = new ActivityGridNode(nodeName, addr, terminalPanelCanvas,
+													 _nodeInfoScreen);
 	_hosts[nodeName] = node;
 	_nodeArray.push(node);
 	displayNode(node);
@@ -154,8 +179,15 @@ private function drawLine(fromX:Number, fromY:Number, toX:Number, toY:Number):vo
 	var l:UIComponent = new UIComponent;
 	l.graphics.lineStyle(10, LINE_COLOR, 1, false, LineScaleMode.VERTICAL,
 						 CapsStyle.NONE, JointStyle.MITER, 10);
+	l.graphics.beginFill(LINE_COLOR);
+	GraphicsUtil.drawArrow(l.graphics,
+		new Point(fromX, fromY),new Point(toX, toY),
+		{shaftThickness:2,headWidth:20,headLength:20,
+		shaftPosition:.25,edgeControlPosition:.75}
+	);
+/*
 	l.graphics.moveTo(fromX, fromY);
-	l.graphics.lineTo(toX, toY);
+	l.graphics.lineTo(toX, toY);*/
 	l.graphics.endFill();
 	_lineScreen.addChild(l);
 	var t:Timer = new Timer(LINE_DELAY, 1);

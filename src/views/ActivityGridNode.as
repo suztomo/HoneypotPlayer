@@ -1,9 +1,11 @@
 package views
 {
+	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.utils.Timer;
 	
 	import mx.core.UIComponent;
+	import mx.core.UITextField;
 
 	public class ActivityGridNode extends UIComponent
 	{
@@ -18,14 +20,30 @@ package views
 		
 		private var _name:String;
 		private var _addr:String;
-		public function ActivityGridNode(name:String, addr:String = "NONE")
+		
+		private var _terminalPanelCanvas:TerminalPanelView;
+		
+		private var _infoTimer:Timer;
+		private var _info:UIComponent;
+		private var _infoCanvas:UIComponent;
+		
+		public function ActivityGridNode(name:String, addr:String,
+										 terminalPanelCanvas:TerminalPanelView,
+										 infoCanvas:UIComponent)
 		{
 			super();
 			_timer = new Timer(HIGHLIGHT_DELAY, 1);
 			_timer.addEventListener(TimerEvent.TIMER, onTimer);
+			addEventListener(MouseEvent.CLICK, onClick);
+//			addEventListener(MouseEvent.MOUSE_OVER, onMouseOver);
+			addEventListener(MouseEvent.MOUSE_MOVE, onMouseOver);
+			_terminalPanelCanvas = terminalPanelCanvas;
+			_infoCanvas = infoCanvas;
+			_addr = addr;
 			this._name = name;
 			this.width = this.height = squareSize;
 			drawDefaultSquare();
+			prepareInfo();
 		}
 		
 		public function drawDefaultSquare():void
@@ -36,6 +54,21 @@ package views
 		private function onTimer(event:TimerEvent):void
 		{
 			drawDefaultSquare();
+		}
+		
+		private function onClick(event:MouseEvent):void
+		{
+			_terminalPanelCanvas.showPanel(_name);
+		}
+		
+		private function onMouseMove(event:MouseEvent):void
+		{
+			showInfo();
+		}
+		
+		private function onMouseOver(event:MouseEvent):void
+		{
+			showInfo();
 		}
 		
 		public function drawSquare(color:uint):void
@@ -51,12 +84,41 @@ package views
 				_timer.reset();
 			}
 			_timer.start();
-			showName();
+			showInfo();
 		}
 		
-		public function showName():void
+		public function set addr(value:String):void
 		{
-			
+			_addr = value;
+		}
+		
+		
+		private function prepareInfo():void
+		{
+			var u:UIComponent = _info = new UIComponent;
+			u.graphics.beginFill(0xFFFFCC, 0.9);
+			u.graphics.drawRect(0, 0, 100, 30);
+			u.graphics.endFill();
+			var t:UITextField = new UITextField;
+			t.text = _name + "\n" + _addr;
+			t.setStyle("fontSize", 16);
+			t.setStyle("textColor", 0x111111); 
+			u.addChild(t);
+			_infoTimer = new Timer(1000, 1);
+			_infoTimer.addEventListener(TimerEvent.TIMER, hideInfo);
+		}
+		private function hideInfo(event:TimerEvent):void
+		{
+			_infoCanvas.removeChild(_info);
+		}
+		
+		public function showInfo():void
+		{
+			_info.x = x;
+			_info.y = y;
+			_infoCanvas.addChild(_info);
+			_infoTimer.reset();
+			_infoTimer.start();
 		}
 	}
 }

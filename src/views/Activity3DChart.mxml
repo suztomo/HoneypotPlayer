@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="95%" height="95%"
+	creationComplete="onCreationComplete()">
+	<mx:Script>
+		<![CDATA[
+			import org.papervision3d.render.BasicRenderEngine;
+			import org.papervision3d.materials.utils.MaterialsList;
+			import org.papervision3d.materials.special.CompositeMaterial;
+			import mx.core.UIComponent;
+		import controllers.ActivityChartManager;
+		import models.utils.Logger;
+	
+		import mx.charts.series.LineSeries;
+		import mx.collections.ArrayCollection;
+
+		import org.papervision3d.scenes.*;
+		import org.papervision3d.objects.*;
+		import org.papervision3d.objects.primitives.*;
+		import org.papervision3d.cameras.*;
+		import org.papervision3d.materials.*;
+		import org.papervision3d.view.Viewport3D;
+		import org.papervision3d.events.InteractiveScene3DEvent;
+		
+		import org.papervision3d.scenes.Scene3D;
+
+		private var container : UIComponent;
+		private var viewport : Viewport3D;
+		private var scene : Scene3D;
+		private var camera : Camera3D;
+		private var rootNode : DisplayObject3D;
+		private var renderer:BasicRenderEngine;
+		
+		private var startX : Number = 0;
+		private var startY : Number = 0;
+		
+		private var maxZoom : Number = 12;
+		private var minZoom : Number = 1;
+		
+		private var axisLength : Number = 150;
+		
+		
+
+		private function onCreationComplete():void
+		{
+			container = canvas;
+			init3D();
+
+			addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
+			addEventListener(MouseEvent.MOUSE_UP,   onMouseUp);
+			addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheel);
+		}
+		
+		/*
+			Quioted http://blog.livedoor.jp/takaaki_bb/archives/50614075.html
+		*/
+		private function init3D():void
+		{
+			var c:UIComponent = new UIComponent;
+			container.addChild(c);
+			c.width = container.width;
+			c.height = container.height;
+
+			viewport = new Viewport3D(c.width, c.height, true, true);
+			c.addChild(viewport);
+
+			scene = new Scene3D();
+			
+			
+			renderer = new BasicRenderEngine();
+			
+			
+			/*
+				Camera configuration
+			*/
+			camera = new Camera3D;
+
+			camera.x = 200;
+			camera.y = 200;
+			camera.z = 200;
+			
+			
+			camera.focus = 50;
+			camera.zoom = 1;
+
+			
+			rootNode = scene.addChild(new DisplayObject3D("rootNode"));
+			var xAxis:DisplayObject3D = drawAxis(0xFF0000);
+			xAxis.yaw(90);
+			var yAxis:DisplayObject3D = drawAxis(0x00FF00);
+			yAxis.pitch(-90);
+			var zAxis:DisplayObject3D = drawAxis(0x0000FF);
+			
+			var color:uint = 0xFFFF00;
+			var colorMaterial:ColorMaterial = new ColorMaterial(color, 1);
+			var wireMaterial:WireframeMaterial = new WireframeMaterial(color);
+			
+			var compoMaterial:CompositeMaterial = new CompositeMaterial();
+			compoMaterial.addMaterial(wireMaterial);
+			compoMaterial.doubleSided = true;
+			
+			var materialsList:MaterialsList = new MaterialsList();
+			materialsList.addMaterial(compoMaterial, "all");
+			
+			var cube1:Cube = new Cube(materialsList, 20, 20, 20);
+			cube1.z = 50;
+			
+			rootNode.addChild(xAxis);
+			rootNode.addChild(yAxis);
+			rootNode.addChild(zAxis);
+			rootNode.addChild(cube1);
+			
+			camera.lookAt(cube1);
+			
+            var cubes:Array = new Array();
+            for (var i:int = 0; i < 3; i++) {
+                cubes[i] = new Array();
+                for (var j:int = 0; j < 3; j++) {
+                    cubes[i][j] = new Array();
+                    for (var k:int = 0; k < 3; k++) {
+                        cubes[i][j][k] = new Cube(materialsList, 10, 10, 10);
+                        cubes[i][j][k].x = 40 * (i + 1);
+                        cubes[i][j][k].y = 40 * (j + 1);
+                        cubes[i][j][k].z = 40 * (k + 1);
+                        rootNode.addChild(cubes[i][j][k]);
+                    }
+                }
+            }
+            
+            
+            render();
+ 		}
+ 		
+ 		private function onMouseDown(event:MouseEvent):void {
+            startX = event.stageX;
+            startY = event.stageY;
+            addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove); 		
+ 		}
+		private function onMouseMove(event:MouseEvent):void {
+            // 順番気にせず回転させる場合
+            // rootNode.yaw(- (event.stageX - startX));
+            // rootNode.pitch(event.stageY - startY);
+            
+            // 順番に回転させる場合
+            rootNode.rotationZ -= (event.stageY - startY);
+            rootNode.rotationY -= (event.stageX - startX);
+            
+            
+            // 直感的に(画面上のx軸、y軸に沿って)回転させる方法はどうやるんだろう
+            
+            startX = event.stageX;
+            startY = event.stageY;
+            
+            // レンダリングしなおす
+            render();
+        }
+        
+        private function render():void
+        {
+        	//レンダリング
+            renderer.renderScene(scene, camera, viewport);
+        }
+
+		private function onMouseWheel(e:MouseEvent):void
+		{
+			if ((camera.zoom <= maxZoom && camera.zoom >= minZoom)
+				|| (camera.zoom >= maxZoom && e.delta < 0)
+				|| (camera.zoom <= minZoom && e.delta > 0)) {
+				camera.zoom += e.delta / 2;
+			}
+			if (camera.zoom < 1) { 
+				camera.zoom = 1;
+			}
+			Logger.log("zoom: " + camera.zoom);
+			render();
+		}
+		private function onMouseUp(event:MouseEvent):void {
+            removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
+        }
+		private function drawAxis(color:uint, length:Number = -1):DisplayObject3D {
+            // 色設定
+            if (length < 0) length = axisLength;
+            var colorMaterial:ColorMaterial = new ColorMaterial(color, 1);
+            var wireMaterial:WireframeMaterial = new WireframeMaterial(color);
+            
+            var compoMaterial:CompositeMaterial = new CompositeMaterial();
+            compoMaterial.addMaterial(colorMaterial);
+            // compoMaterial.addMaterial(wireMaterial);
+            compoMaterial.doubleSided = true;
+            compoMaterial.interactive = true;
+            
+            var materialsList:MaterialsList = new MaterialsList();
+            materialsList.addMaterial(compoMaterial, "all");
+            // 線を引く (円柱だけど)
+            var axis:DisplayObject3D = new Cylinder(compoMaterial, 2, length);
+            axis.z = 75;
+            axis.rotationX = 90;
+            
+            // 矢印の先を描く (球だけど)
+            var sphere:DisplayObject3D = new Sphere(compoMaterial, 10);
+            sphere.z = length;
+            
+            sphere.addEventListener(InteractiveScene3DEvent.OBJECT_CLICK, function ():void{
+            	trace("clicked");
+            });
+            
+            var node:DisplayObject3D = new DisplayObject3D();
+            node.addChild(axis);
+            node.addChild(sphere);
+            
+            return node;
+        }
+		]]>
+	</mx:Script>
+	<mx:Panel title="Activity Line Chart"  width="100%" height="95%" >
+		<mx:VBox width="100%" height="100%" >
+			<!-- <mx:CheckBox id="drawGraphCheck" label="Draw Graph" selected="{_drawGraph}"
+				click="toggleDraw()" /> -->
+			<mx:Canvas id="canvas" width="100%" height="100%" backgroundColor="0x000000" />		
+		</mx:VBox>
+	</mx:Panel>	
+</mx:Canvas>

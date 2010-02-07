@@ -31,6 +31,7 @@
 			{
 				setCurrentState("ServerSelection");
 				radioServer.selected = true;
+				
 			}
 			
 			private function disappear():void
@@ -115,7 +116,8 @@
 		]]>
 	</mx:Script>
 	<mx:Panel title="Data provider selection" height="75%" width="75%"
-		paddingTop="10" paddingLeft="10" >
+		paddingTop="10" paddingLeft="10"
+		 >
 		
 		<mx:VBox paddingLeft="20" paddingTop="20">
 			<mx:Text text="Select which data to play with.">

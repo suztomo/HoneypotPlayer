@@ -146,6 +146,11 @@ package controllers
 		}
 	
 	
+		/*
+		
+			|  hp_node  |      syscall name        |
+			|     4     |            16            |
+		*/
 		public function processSyscall(block:Block):void
 		{
 			/* To record the events, just aligh this messages according to time */
@@ -169,7 +174,6 @@ package controllers
 			|  hp_node  | addr[0] | addr[1] | addr[2] | addr[3] |
 			|     4     |    1    |    1    |    1    |    1    |
 		*/
-		
 		public function processNodeInfo(block:Block):void
 		{
 			var bytes:ByteArray = block.bytes;
@@ -178,7 +182,7 @@ package controllers
 				return;
 			}
 			var hp_node:uint = bytes.readUnsignedInt();
-			var addr:String;
+			var addr:String = "";
 			var c:uint;
 			var message:HoneypotEventMessage = new HoneypotEventMessage(HoneypotEvent.NODE_INFO);
 			for (var i:int=0; i<4; ++i) {
@@ -205,7 +209,6 @@ package controllers
 				Logger.log("invalid bytes available " + bytes.bytesAvailable + " / processConnect");
 				return;
 			}
-			Logger.log("processing connection info");
 			var hp_node:uint = bytes.readUnsignedInt();
 			var from_host:String = HOSTNAME_PREFIX + String(hp_node);
 			hp_node = bytes.readUnsignedInt();
@@ -281,7 +284,6 @@ package controllers
 			var message:HoneypotEventMessage = new HoneypotEventMessage(
 				HoneypotEvent.HOST_TERM_INPUT
 			);
-			
 			message.buildTermInputMessage(hostname, tty_name, bytes);
 			dispatchEventMessage(message);
 		}

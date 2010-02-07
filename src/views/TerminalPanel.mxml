@@ -12,10 +12,10 @@ and addChilded by TerminalView.terminalPanelCanvas.
 		import mx.controls.Button;
 		import views.Terminal;
 		
-		private var terminals:Array;
-		private var terminal2Tab:Object;
-		private var tab2Terminal:Object;
-		private var tab2Timer:Object;
+		private var terminals:Array = new Array();
+		private var terminal2Tab:Object = new Object;
+		private var tab2Terminal:Object = new Object;
+		private var tab2Timer:Object = new Object;
 		
 				
 		[Bindable]
@@ -23,10 +23,10 @@ and addChilded by TerminalView.terminalPanelCanvas.
 		
 		private function onCreationComplete():void
 		{
-			terminals = new Array();
+/*			terminals = new Array();
 			terminal2Tab = new Object;
 			tab2Terminal = new Object;
-			tab2Timer = new Object;
+			tab2Timer = new Object;*/
 			b.x = this.width - b.width - 20;
 		}
 		
@@ -103,7 +103,7 @@ and addChilded by TerminalView.terminalPanelCanvas.
 	</mx:Script>
 	<mx:Button id="b" label="Close" click="close();" />		
 	<mx:VBox>
-		<mx:Label text="{hostname}" />
+		<mx:Label text="{hostname}" fontSize="20" />
 		<mx:HBox>
 			<mx:HBox id="tabBox" width="90%" height="50" />
 		</mx:HBox>

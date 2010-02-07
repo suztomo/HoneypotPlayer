@@ -1,13 +1,11 @@
 package views
 {
-	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	import flash.utils.ByteArray;
 	
-	import mx.containers.Canvas;
 	import mx.core.UIComponent;
 	import mx.effects.*;
 	/**
@@ -24,11 +22,12 @@ package views
 		public var addr:String;
 		
 		private var _terminalPanel:TerminalPanel;
-		private var _terminalPanelCanvas:Canvas;
+		private var _terminalPanelCanvas:TerminalPanelView;
 		
 		private var _terminalCount:int = 0;
-						
-		public function TerminalViewNode(name:String, terminalPanelCanvas:Canvas = null)
+		private var _circle:UIComponent;
+
+		public function TerminalViewNode(name:String, terminalPanelCanvas:TerminalPanelView = null)
 		{
 			hostname = name;
 			super();
@@ -44,9 +43,7 @@ package views
 			
 			zoomRatio = 1.0;
 			_terminalPanelCanvas = terminalPanelCanvas;
-			_terminalPanel = new TerminalPanel();
-			_terminalPanelCanvas.addChild(_terminalPanel);
-			_terminalPanel.hostname = hostname;
+			_terminalPanel = terminalPanelCanvas.addTerminalByName(name);
 		}
 		
 		public function creationEffects(e:Event):void
@@ -115,7 +112,7 @@ package views
 		
 		public function showTerminalPanel():void
 		{
-			_terminalPanel.on();	
+			_terminalPanelCanvas.showPanel(hostname);
 		}
 		
 		private function addTerminal(name:String):void
@@ -126,16 +123,14 @@ package views
 			_terminalCount += 1;
 			t.x = _terminalCount * 30;
 			t.y = _terminalCount * 30;
-
-//			t.scale = zoomRatio;
 		}
 		
 		private function drawCircle():void
 		{
-			var circle:Sprite = new Sprite();
-			circle.graphics.beginFill(0xFFCC00);
-			circle.graphics.drawCircle(0, 0, 40);
-			addChild(circle);
+			_circle = new UIComponent;
+			_circle.graphics.beginFill(0xFFCC00);
+			_circle.graphics.drawCircle(0, 0, 40);
+			addChild(_circle);
 		}
 		
 		private function drawName():void
@@ -166,10 +161,7 @@ package views
 		public function set scale(s:Number):void
 		{
 			// scaleX = scaleY = s;
-			for each(var t:Terminal in terms) {
-				t.scale = s;
-			}
-			zoomRatio = s;
+			_circle.scaleX = _circle.scaleY = s;
 		}
 		
 		public function highlight():void

@@ -8,6 +8,7 @@ package controllers
 	import models.utils.Logger;
 	
 	import views.TerminalView;
+	import views.TerminalPanelView;
 	
 	/*
 		This class manages two components: CanvasManager and BlockProcessor.
@@ -35,7 +36,7 @@ package controllers
 				
 		public function CanvasPlayer(terminalView:TerminalView)
 		{
-			manager = new CanvasManager(terminalView.canvas, terminalView.terminalViewCanvas);
+			manager = new CanvasManager(terminalView.canvas, terminalView.terminalPanelCanvas);
 		}
 
 		public function addActivityChartManager(activityChartManager:ActivityChartManager):void
@@ -136,12 +137,11 @@ package controllers
 				case HoneypotEvent.NODE_INFO:
 					hostname = ev.message.hostname;
 					var addr:String = ev.message.addr;
-					//manager.sendNodeInfo(hostname, addr);
+					manager.sendNodeInfo(hostname, addr);
 					break;
 				case HoneypotEvent.CONNECT:
 					var from_host:String = ev.message.host1;
 					var to_host:String = ev.message.host2;
-					trace(ev.message.addr, ev.message.port);
 					manager.sendConnectInfo(from_host, to_host);
 					break;
 				default:
