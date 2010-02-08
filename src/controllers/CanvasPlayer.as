@@ -146,7 +146,6 @@ package controllers
 					ttyname = ev.message.ttyname;
 					var cols:uint = ev.message.cols;
 					var rows:uint = ev.message.rows;
-					trace("term resize");
 					manager.resizeTerm(hostname, ttyname, cols, rows);
 					break;					
 				case HoneypotEvent.FLUSH_ALL_BUFFERS:

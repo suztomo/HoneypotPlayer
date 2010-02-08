@@ -97,9 +97,10 @@ package views
 		{
 			var u:UIComponent = _info = new UIComponent;
 			u.graphics.beginFill(0xFFFFCC, 0.9);
-			u.graphics.drawRect(0, 0, 100, 30);
+			u.graphics.drawRect(0, 0, 140, 45);
 			u.graphics.endFill();
 			var t:UITextField = new UITextField;
+			t.width = 150;
 			t.text = _name + "\n" + _addr;
 			t.setStyle("fontSize", 16);
 			t.setStyle("textColor", 0x111111); 

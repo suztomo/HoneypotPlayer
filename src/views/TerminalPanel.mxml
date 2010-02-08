@@ -4,7 +4,8 @@ This panel holds several terminals on it.
 and addChilded by TerminalView.terminalPanelCanvas.
 -->
 
-<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="80%" height="80%"
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="100%" height="100%"
+    minWidth="700"
 	title="TerminalPanel" creationComplete="onCreationComplete();" visible="false"
 	paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10">
 	<mx:Script>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%"
+	creationComplete="onCreationComplete()">
+	<mx:Script>
+		<![CDATA[
+		
+		private var terminals:Object;
+		
+		private function onCreationComplete():void
+		{
+			terminals = new Object;	
+		}
+		
+		public function addTerminalByName(hostname:String):TerminalPanel
+		{
+			var terminalPanel:TerminalPanel = new TerminalPanel();
+			terminalPanel.hostname = hostname;
+			addTerminal(terminalPanel);
+			return terminalPanel;
+		}
+		
+		public function addTerminal(terminal:TerminalPanel):void
+		{
+			if (terminal.hostname == null) {
+				throw new Error("terminal has no name");
+			}
+			terminals[terminal.hostname] = terminal;
+			terminal.y = 20;
+			addChild(terminal);
+		}
+		
+		public function showPanel(hostname:String):void
+		{
+			var t:TerminalPanel;
+			t = findTerminal(hostname);
+			t.on();
+		}
+		
+		public function findTerminal(hostname:String):TerminalPanel
+		{
+			var t:TerminalPanel;
+			t = terminals[hostname];
+			if (t == null) {
+				throw new Error("No such terminal");
+			}
+			return t;
+		}
+		
+		]]>
+	</mx:Script>
+</mx:Canvas>

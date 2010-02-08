@@ -7,8 +7,11 @@
     paddingRight="0" paddingLeft="0"
     closing="exitingHandler(event);"
     minHeight="800"
-    minWidth="1200"
-    xmlns:views="views.*">
+    minWidth="1000"
+    width="1200"
+    horizontalScrollPolicy="off"
+    verticalScrollPolicy="off"
+    xmlns:views="views.*" >
 
     <mx:Style source="style.css" />
     <mx:states>
@@ -56,31 +59,31 @@
 			{
 				Logger.setConsole(console);				
 			}
+
 		]]>
 	</mx:Script>
 
 	<views:DataSelectionForm id="dataSelectionForm" height="100%" width="100%" />
-	<mx:VBox>
-		<mx:TabNavigator id="viewTab" height="100%" creationPolicy="all">
-			<mx:VBox label="Terminal View"  >
-					<views:TerminalView id="terminalView" slider="{slider}"
-						 terminalPanelCanvas="{terminalPanelCanvas}"/>
-			</mx:VBox>
-			<mx:VBox label="Activity Grid" >
-				<views:ActivityGrid id="activityGrid" terminalPanelCanvas="{terminalPanelCanvas}" />
-			</mx:VBox>
-			<mx:VBox label="Activity Chart" >
-				<views:ActivityLineChart id="activityLineChart" />			
-			</mx:VBox>
-			<mx:VBox label="Activity 3D Chart" >
-				<views:Activity3DChart id="activity3DChart" />			
-			</mx:VBox>
-			<mx:VBox label="Console">
-				<views:Console id="console" />
-			</mx:VBox>
-		</mx:TabNavigator>
-		<views:Slider id="slider" sliderChanged="onSliderChange(event);" 
-			sliderProgress="onSliderProgress(event)" />
-	</mx:VBox>
+	<mx:TabNavigator id="viewTab" creationPolicy="all" >
+		<mx:VBox label="Terminal View"  >
+				<views:TerminalView id="terminalView" slider="{slider}"
+					 terminalPanelCanvas="{terminalPanelCanvas}"/>
+		</mx:VBox>
+		<mx:VBox label="Activity Grid" >
+			<views:ActivityGrid id="activityGrid" terminalPanelCanvas="{terminalPanelCanvas}" />
+		</mx:VBox>
+		<mx:VBox label="Activity Chart" >
+			<views:ActivityLineChart id="activityLineChart" />			
+		</mx:VBox>
+		<mx:VBox label="Activity 3D Chart" >
+			<views:Activity3DChart id="activity3DChart" />			
+		</mx:VBox>
+		<mx:VBox label="Console">
+			<views:Console id="console" />
+		</mx:VBox>
+	</mx:TabNavigator>
+	<views:Slider id="slider" sliderChanged="onSliderChange(event);" 
+		sliderProgress="onSliderProgress(event)" bottom="10" />
+
 	<views:TerminalPanelView id="terminalPanelCanvas" width="90%" height="90%" visible="true" />
 </mx:WindowedApplication>

@@ -60,6 +60,7 @@ package models.graphs
 			for (hostName in nodeDict) {
 				a = nodeDict[hostName];
 				activity = a.connect + a.syscall;
+				if (activity < 1) continue;
 				n = new Activity3DChartNode(hostName, activity);
 				putMessageByTime(time, n);
 			}
@@ -79,7 +80,6 @@ package models.graphs
 		{
 			var e:Array = dict[time];
 			if (e == null) {
-				Logger.log("No such activity in that time");
 			}
 			return e;
 		}

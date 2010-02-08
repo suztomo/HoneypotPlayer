@@ -113,7 +113,6 @@ package views
 		public function resizeTerm(ttyname:String, cols:uint, rows:uint):void
 		{
 			var t:Terminal = findTerminal(ttyname);
-			trace("resize term " + ttyname + " (" + cols + ", " + rows);
 			t.resize(cols, rows);
 		}
 		

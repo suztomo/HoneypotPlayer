@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml">
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+ horizontalAlign="center"
+ width="100%"
+ >
+	
 	<mx:Metadata>
         [Event(name="sliderChanged", type="flash.events.Event")]
     </mx:Metadata>
@@ -179,12 +183,12 @@
 
 		]]>
 	</mx:Script>
-		<mx:HBox paddingLeft="150">
+		<mx:HBox>
 			<mx:Button label="stop" id="playButton" click="playToggle();" enabled="false" />
-			<mx:HSlider width="800" id="slider" minimum="0" maximum="100"
+			<mx:HSlider width="700" id="slider" minimum="0" maximum="100"
 				value="0" tickColor="black" change="sliderChanged();" />
 			<mx:Text text="00:00" id="currentTime" />
 			<mx:Text text="/" />
 			<mx:Text text="00:00" id="totalTime" />	
 		</mx:HBox>
-</mx:Canvas>
+</mx:HBox>
