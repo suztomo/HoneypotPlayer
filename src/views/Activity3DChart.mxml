@@ -7,6 +7,19 @@
     <mx:Script source="Activity3DChartAction.as" />
 	<mx:Script>
 		<![CDATA[
+		import org.papervision3d.core.geom.Lines3D;
+		import org.papervision3d.materials.special.LineMaterial;
+		import org.papervision3d.core.geom.renderables.Line3D;
+		import org.papervision3d.core.geom.renderables.Vertex3D;
+		import org.papervision3d.materials.shadematerials.GouraudMaterial;
+		import org.papervision3d.lights.PointLight3D;
+		import org.papervision3d.core.proto.MaterialObject3D;
+		import org.papervision3d.typography.fonts.HelveticaBold;
+		import mx.messaging.channels.StreamingAMFChannel;
+		import org.papervision3d.typography.Text3D;
+		import org.papervision3d.typography.fonts.HelveticaLight;
+		import org.libspark.utils.ColorUtil;
+		import org.papervision3d.materials.special.Letter3DMaterial;
 		import org.papervision3d.objects.special.ParticleField;
 		import org.papervision3d.materials.special.ParticleMaterial;
 		import org.papervision3d.core.render.sort.NullSorter;
@@ -39,6 +52,10 @@
 		private var camera : Camera3D;
 		private var rootNode : DisplayObject3D;
 		private var renderer:BasicRenderEngine;
+		
+		private var rootNodeDefaultRotationX:Number = -90;
+		private var rootNodeDefaultRotationY:Number = 90;
+		private var rootNodeDefaultRotationZ:Number = 0;
 		
 		private var startX : Number = 0;
 		private var startY : Number = 0;
@@ -78,11 +95,22 @@
 		
 		private var moveRatio:Number = 3.0;
  		private var timeDict:ActivityTimeDict;
+ 		
+ 		private var nodeLabelFont:HelveticaLight = new HelveticaLight;
+ 		private var labelMaterials:Array = new Array;
+ 		private var labelMaterialsIndex:int = 0;
+ 		
+ 		private var cubeMaterials:Array = new Array;
+		private var light:PointLight3D;
+		
+		public static var infoLayer:UIComponent = new UIComponent;
 
 		private function onCreationComplete():void
 		{
 			container = new UIComponent;
 			canvas.addChild(container);
+			
+			canvas.addChild(infoLayer); 
 			this.parent.height = canvas.height;
 			container.width = canvas.width;
 			container.height = canvas.height;
@@ -110,6 +138,13 @@
 			g.endFill();
 			canvas.mask = m;
 		}
+		private function initLight():void
+		{
+			light = new PointLight3D();
+			light.z = 0
+			light.y = 500;
+			light.x = 0;
+		}
 
 		private function initTimeWall():void
 		{
@@ -125,7 +160,8 @@
 			timeWall.z = timeWallHeight/2;
 			timeWall.rotationX = 90;
 			lastTimeWallMoved = 0;
-		}		
+		}
+		
 		
 		private function moveTimeWall(time:Number):void
 		{
@@ -147,6 +183,8 @@
 			}
 		}
 		
+		private var floorWidth:Number = 2000;
+		private var floorDepth:Number = 2000;
 		/*
 			Quioted http://blog.livedoor.jp/takaaki_bb/archives/50614075.html
 		*/
@@ -156,7 +194,6 @@
 			container.addChild(c);
 			c.width = container.width;
 			c.height = container.height;
-			prepareBasicMaterials();
 			viewport = new Viewport3D(c.width, c.height, true, true);
 			c.addChild(viewport);
 
@@ -172,49 +209,27 @@
 			*/
 			camera = new Camera3D;
 
-			resetCamera();			
 			rootNode = scene.addChild(new DisplayObject3D("rootNode"));
-			rootNode.rotationX = -90;
-			rootNode.rotationY = 90;
-			
 			rootNode.x = 250;
 			rootNode.y = 0;
+			resetCamera();
 			drawAxises();
 			
 			camera.lookAt(DisplayObject3D.ZERO);
-			drawFloor(2000, 2000);
+			drawFloor(floorWidth, floorDepth);
 			initTimeWall();
 			initParticles();
 			
-			/*
-			var cube1:ActivityCube = new ActivityCube(basicMaterial, 20, 2 * 10, 20);
-			var cube2:ActivityCube = new ActivityCube(basicMaterial, 20, 2 * 10, 20);
-			var cube3:ActivityCube = new ActivityCube(basicMaterial, 20, 2 * 10, 20);
-			cube1.hostName = "Cube One";
-			cube2.hostName = "Cube Two";
-			cube3.hostName = "Cube Three";
-			cube1.addEventListener(InteractiveScene3DEvent.OBJECT_CLICK,
-            					  onCubeClicked);
-            cube2.addEventListener(InteractiveScene3DEvent.OBJECT_CLICK,
-            					  onCubeClicked);
-            cube3.addEventListener(InteractiveScene3DEvent.OBJECT_CLICK,
-            					  onCubeClicked);
-            					  
-           	cube1.x = 200;
-           	cube2.y = 100;
-           	cube3.z = 400;
-            rootNode.addChild(cube1);
-            rootNode.addChild(cube2);
-            rootNode.addChild(cube3);
-            */
-			
 			Activity3DChartNode.setHighlightMaterial(0xFFFFFF);
 			//drawXYPlane(1000, 1000);
+
+
 			render();
  		}
  		
  		private function drawAxises():void
  		{
+/*
 			var xAxis:DisplayObject3D = drawAxis(0xFF0000);
 			xAxis.yaw(90);
 			var yAxis:DisplayObject3D = drawAxis(0x00FF00);
@@ -223,14 +238,105 @@
 			
 			rootNode.addChild(xAxis);
 			rootNode.addChild(yAxis);
-			rootNode.addChild(zAxis); 			
+			rootNode.addChild(zAxis);
+*/
+			var lines:Lines3D = new Lines3D;
+			var lx:Line3D = createLine(lines, 0xCC0033, floorWidth, 0, 0);
+			var ly:Line3D = createLine(lines, 0x33CC00, 0, floorDepth, 0);
+			var lz:Line3D = createLine(lines, 0x0033CC, 0, 0, 300);
+			lines.addLine(ly);
+			lines.addLine(lz);
+			lines.addLine(lx); 
+            rootNode.addChild(lines);
+
+ 		}
+ 		
+ 		private function drawNodeLabels():void
+ 		{
+ 			var nodeName:String;
+ 			var i:int = 0;
+ 			var l:int = labelMaterials.length;
+ 			var m:Letter3DMaterial;
+ 			
+ 			for (nodeName in _nodeNameIndexDict) {
+ 				i = getNodeIndex(nodeName);
+ 				m = labelMaterials[i % l];
+ 				
+ 				drawNodeLabelOnAxis(i * nodeWidth, m, nodeName); 
+ 			}
+ 		}
+ 		
+ 		
+ 		
+ 		private function drawNodeLabelOnAxis(positionX:Number,
+ 											 material:Letter3DMaterial, text:String):void
+ 		{
+			if (labelMaterials.length == 0) {
+				Logger.log("invalid call sequence");
+				return;
+			}
+			var w:Text3D = new Text3D(text, nodeLabelFont, material);
+			w.letterSpacing = -10;
+			w.lineSpacing = -10;
+			w.x = positionX;
+			w.y = -30;
+			w.rotationZ -= 90;
+			w.rotationY -= 180;
+			w.scaleY = w.scaleX = 0.1;
+			rootNode.addChild(w);
+ 		}
+ 		
+ 		
+ 		
+ 		private function prepareNodeLabelMaterials():void
+ 		{
+ 			var m:Letter3DMaterial;
+ 			var c:uint;
+ 			var nodeName:String;
+ 			for (nodeName in _nodeNameIndexDict) {
+ 				c = getColorOfNodeName(nodeName);
+ 				m = new Letter3DMaterial(c, 1);
+ 				m.doubleSided = true;
+ 				labelMaterials.push(m);
+ 			}
+ 		}
+ 		
+ 		private var nodeColors:Array = new Array;
+ 		private var nodeDarkColors:Array = new Array;
+ 		
+ 		private function prepareNodeColors():void
+ 		{
+ 			var c:uint;
+ 			nodeColors.length = nodeDarkColors.length = 0;
+ 			for (var r:int = 0; r < 360; r += 30) {
+ 				c = org.libspark.utils.ColorUtil.hsv(r, 0.5, 0.9);
+ 				nodeColors.push(c);
+ 				c = org.libspark.utils.ColorUtil.hsv(r, 1, 0.3);
+ 				nodeDarkColors.push(c);
+ 			}
+ 		}
+ 		
+ 		private function getColorOfNodeName(nodeName:String):uint
+ 		{
+ 			var c:uint;
+ 			var i:int = getNodeIndex(nodeName);
+ 		
+ 			c = nodeColors[i%nodeColors.length];
+ 			return c;
+ 		}
+ 		
+ 		private function getDarkColorOfNodeName(nodeName:String):uint
+ 		{
+ 			var i:int = getNodeIndex(nodeName);
+ 			var c:uint = nodeDarkColors[i%nodeColors.length];
+ 			return c;
  		}
  		
  		private function prepareBasicMaterials():void
  		{
 			var color:uint = 0xFF9933;
 			var colorMaterial:ColorMaterial = new ColorMaterial(color, 1);
-			var wireMaterial:WireframeMaterial = new WireframeMaterial(0x000000);
+			var wireMaterial:WireframeMaterial = new WireframeMaterial(0xDDDDDD);
 			
 			var compoMaterial:CompositeMaterial = new CompositeMaterial();
 			compoMaterial.addMaterial(wireMaterial);
@@ -243,6 +349,31 @@
 			materialsList.addMaterial(compoMaterial, "all");
 			basicMaterial = materialsList;
 			
+			
+			var nodeName:String;
+			var c:uint;
+			var c2:uint;
+			var a:Object = new Object;
+			var g:GouraudMaterial;
+			for (nodeName in _nodeNameIndexDict) {
+				c = getColorOfNodeName(nodeName);
+				c2 = getDarkColorOfNodeName(nodeName);
+				colorMaterial = new ColorMaterial(c, 1);
+//				g = new GouraudMaterial(light, c, c2);
+				compoMaterial = new CompositeMaterial();
+				compoMaterial.addMaterial(wireMaterial);
+				compoMaterial.addMaterial(colorMaterial);
+				compoMaterial.doubleSided = true;
+				compoMaterial.interactive = true;
+				var ml:MaterialsList = new MaterialsList({all:compoMaterial});
+				cubeMaterials.push(ml);
+			}
+ 		}
+ 		
+ 		private function getMaterialofNodeName(nodeName:String):MaterialsList
+ 		{
+ 			var i:int = getNodeIndex(nodeName);
+ 			return cubeMaterials[i % cubeMaterials.length];
  		}
  		
  		private function initParticles():void
@@ -281,6 +412,8 @@
  				hostNames.push(msg.hostname ? msg.hostname : msg.host1);
  			}
  			prepareNodeIndex(hostNames);
+ 			prepareNodeColors();
+			prepareBasicMaterials();
  			/*
  				time => array of Activity3DChartnode
  			*/
@@ -294,8 +427,9 @@
  				a = timeDict.getMessagesByTime(t);
  				drawNodesByTime(t, a);
  			}
- 			
- 			render();            
+ 			prepareNodeLabelMaterials();
+ 			drawNodeLabels(); 			
+ 			render();    
  		}
  		
  		
@@ -332,16 +466,19 @@
  		*/
  		
  		private static var count:int = 0;
+ 		private var nodeWidth:Number = 20;
+ 		private var nodeDepth:Number = 20;
+ 		private var nodeHeightRatio:Number = 10;
  		private function drawNodeByTime(time:Number, node:Activity3DChartNode):void
  		{
-			var cube:ActivityCube = new ActivityCube(basicMaterial, 20, node.activity * 10, 20);
- 			cube.x = getNodeIndex(node.hostName) * 25;
+ 			var m:MaterialsList = this.getMaterialofNodeName(node.hostName);
+			var cube:ActivityCube = new ActivityCube(node, time, m, nodeWidth,
+												node.activity * nodeHeightRatio + 10,nodeDepth);
+ 			cube.x = getNodeIndex(node.hostName) * nodeWidth;
  			cube.y = time / timeRatio;
- 			cube.z = node.activity * 5;
+ 			cube.z = node.activity * nodeHeightRatio / 2;
  			cube.node = node;
-
-            cube.addEventListener(InteractiveScene3DEvent.OBJECT_CLICK,
-            					  onCubeClicked);
+ 			cube.time = time;
             cube.addEventListener(InteractiveScene3DEvent.OBJECT_OVER,
             					  onCubeOvered);
 			node.view = cube;
@@ -353,16 +490,14 @@
  			var t:ActivityCube = event.displayObject3D as ActivityCube;
  			var name:String = t.node.hostName;
 			event.stopPropagation();
- 			trace(name + " clicked");
  		}
  		
  		private function onCubeOvered(event:InteractiveScene3DEvent):void
  		{
  			var t:ActivityCube = event.displayObject3D as ActivityCube;
  			var name:String = t.node.hostName;
- 			
  		}
- 		
+  		
  		private function highlightNodes(nodes:Array):void
  		{
  			var node:Activity3DChartNode;
@@ -380,35 +515,68 @@
 			}
  		}
  		
+ 		import flash.events.Event;
  		private function onMouseDown(event:MouseEvent):void {
             startX = event.stageX;
             startY = event.stageY;
+            
+            
+            //addEventListener(Event.ENTER_FRAME, onMove);
             addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
-            
  		}
-		private function onMouseMove(event:MouseEvent):void {
-            // 順番気にせず回転させる場合
-            //rootNode.yaw(- (event.stageX - startX));
-            //rootNode.pitch(event.stageY - startY);
-            
-            // 順番に回転させる場合
-            //rootNode.rotationZ -= (event.stageY - startY);
-            //rootNode.rotationY -= (event.stageX - startX);
-            
-            // 直感的に(画面上のx軸、y軸に沿って)回転させる方法はどうやるんだろう
-            /*
-            startX = event.stageX;
-            startY = event.stageY;
-            */
-            camera.x -= (event.stageX - startX) / moveRatio;
-            camera.z += (event.stageY - startY) / moveRatio;
-            
+ 		
+ 		
+ 		private function onMouseMove(event:MouseEvent):void {
+ 			if (moveRootNode) {
+	            // 順番気にせず回転させる場合
+	            rootNode.yaw(- (event.stageX - startX));
+	            rootNode.pitch(event.stageY - startY);
+	            
+	            // 順番に回転させる場合
+	            rootNode.rotationZ -= (event.stageY - startY);
+	            rootNode.rotationY -= (event.stageX - startX);
+	            
+	            // 直感的に(画面上のx軸、y軸に沿って)回転させる方法はどうやるんだろう
+	            startX = event.stageX;
+	            startY = event.stageY;
+ 				
+ 			} else {
+ 				var xd:Number = (event.stageX - startX) / moveRatio;
+ 				var yd:Number = (event.stageY - startY) / moveRatio;
+ 				if (event.stageX < 50 || event.stageY < 50) return;
+            	camera.x -= xd;
+            	camera.z += yd;
+            	
+			}
             // レンダリングしなおす
             render();
         }
-        
+
+		private function onMouseWheel(e:MouseEvent):void
+		{
+			if ((camera.zoom <= maxZoom && camera.zoom >= minZoom)
+				|| (camera.zoom >= maxZoom && e.delta < 0)
+				|| (camera.zoom <= minZoom && e.delta > 0)) {
+				camera.zoom += e.delta / 5.0;
+			}
+			if (camera.zoom < 1) { 
+				camera.zoom = 1;
+			}
+			render();
+		}
+		
+		private function onMouseUp(event:MouseEvent):void {
+            removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
+            //removeEventListener(Event.ENTER_FRAME, onMove);
+            this.setFocus();
+        }
+                
         private function resetCamera():void
         {
+        	rootNode.rotationX = rootNodeDefaultRotationX;
+        	rootNode.rotationY = rootNodeDefaultRotationY;
+        	rootNode.rotationZ = rootNodeDefaultRotationZ;
+        	
     		camera.x = cameraInitPositionX;
     		camera.y = cameraInitPositionY;
     		camera.z = cameraInitPositionZ;
@@ -429,24 +597,6 @@
          	setMask();            
         }
 
-		private function onMouseWheel(e:MouseEvent):void
-		{
-			if ((camera.zoom <= maxZoom && camera.zoom >= minZoom)
-				|| (camera.zoom >= maxZoom && e.delta < 0)
-				|| (camera.zoom <= minZoom && e.delta > 0)) {
-				camera.zoom += e.delta / 5.0;
-			}
-			if (camera.zoom < 1) { 
-				camera.zoom = 1;
-			}
-			render();
-		}
-		
-		private function onMouseUp(event:MouseEvent):void {
-            removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
-            this.setFocus();
-        }
-        
 		private function drawAxis(color:uint, length:Number = -1):DisplayObject3D {
             // 色設定
             if (length < 0) length = axisLength;
@@ -466,21 +616,21 @@
             axis.z = 75;
             axis.rotationX = 90;
             
-            // 矢印の先を描く (球だけど)
-            var sphere:DisplayObject3D = new Sphere(compoMaterial, 10);
-            sphere.z = length;
-            
-            sphere.addEventListener(InteractiveScene3DEvent.OBJECT_CLICK, function ():void{
-            	trace("clicked");
-            });
-            
             var node:DisplayObject3D = new DisplayObject3D();
             node.addChild(axis);
-            node.addChild(sphere);
-            
+
             return node;
         }
         
+        private function createLine(lines:Lines3D, color:uint, vx:Number, vy:Number, vz:Number):Line3D
+        {
+			var xs:Vertex3D =new Vertex3D(-vx, -vy, -vz);
+			var xe:Vertex3D =new Vertex3D(vx, vy, vz);
+			var lm:LineMaterial = new LineMaterial(color, 1);
+			var l:Line3D =new Line3D(lines, lm, 2, xs, xe);
+			return l;
+        }
+
         private function createAxis(color:uint, length:Number = -1):DisplayObject3D {
         	if (length < 0) length = axisLength;
             var colorMaterial:ColorMaterial = new ColorMaterial(color, 1);
@@ -520,11 +670,14 @@
         	render();
         }
         
+        [Bindable]
+        private var moveRootNode:Boolean = false;
+        
         private function onKeyDown(event:KeyboardEvent):void
         {
         	switch (event.keyCode) {
         		case 32: // space key
-        			resetCamera();
+        			moveRootNode = !moveRootNode;
         			break;
         		case 37:
         			panCamera(+0.1);
@@ -536,23 +689,25 @@
 					break;
         	}
         }
+        
+        
 		]]>
 	</mx:Script>
 	<mx:Panel title="Activity Line Chart"  width="100%" height="95%" >
 		<mx:VBox width="100%" height="100%" >
 			<!-- <mx:CheckBox id="drawGraphCheck" label="Draw Graph" selected="{_drawGraph}"
 				click="toggleDraw()" /> -->
-			<mx:Canvas id="canvas" width="100%" minWidth="700" height="100%" minHeight="600" creationComplete="onCanvasComplete();"
-				 backgroundColor="0x000000" />
-			
 			<mx:HBox>
 				<mx:Text text="Zoom: {zoom}" />
 				<mx:Text text=", CameraX: {cameraX}" />
 				<mx:Text text=", CameraY: {cameraY}" />
 				<mx:Text text=", CameraZ: {cameraZ}" />
-				<mx:TextInput text="" id="dummyfield" visible="true" />
+				<mx:Text text="Drag: {moveRootNode}" />
 				<mx:Button label="Camera Reset" click="resetCamera();" />
+				
 			</mx:HBox>
+			<mx:Canvas id="canvas" width="100%" minWidth="1000" height="100%" minHeight="600" creationComplete="onCanvasComplete();"
+				 backgroundColor="0x000000" />
 		</mx:VBox>
-	</mx:Panel>	
+	</mx:Panel>
 </mx:Canvas>

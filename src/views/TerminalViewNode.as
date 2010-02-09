@@ -1,7 +1,9 @@
 package views
 {
+	import flash.display.GradientType;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.geom.Matrix;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	import flash.utils.ByteArray;
@@ -24,8 +26,13 @@ package views
 		private var _terminalPanel:TerminalPanel;
 		private var _terminalPanelCanvas:TerminalPanelView;
 		
+		private var colors:Array = [0x32CD32, 0x52ED52];
+		private var gradMatrix:Matrix = new Matrix;
 		private var _terminalCount:int = 0;
 		private var _circle:UIComponent;
+		
+		private var backgroundColor:uint = 0x32CD32;
+		
 
 		public function TerminalViewNode(name:String, terminalPanelCanvas:TerminalPanelView = null)
 		{
@@ -44,6 +51,9 @@ package views
 			zoomRatio = 1.0;
 			_terminalPanelCanvas = terminalPanelCanvas;
 			_terminalPanel = terminalPanelCanvas.addTerminalByName(name);
+			
+			gradMatrix.createGradientBox(50, 50, 0, 0, 0);
+			gradMatrix.rotate(Math.PI/6 + Math.PI);
 		}
 		
 		public function creationEffects(e:Event):void
@@ -84,6 +94,7 @@ package views
 		{
 			showTerminalPanel();
 		}
+
 		
 		public function moveWidthEffect(x:Number, y:Number):void
 		{
@@ -118,7 +129,8 @@ package views
 		
 		public function showTerminalPanel():void
 		{
-			_terminalPanelCanvas.showPanel(hostname);
+			TerminalPanelView.showPanel(hostname);
+//			_terminalPanelCanvas.showPanel(hostname);
 		}
 		
 		private function addTerminal(name:String):void
@@ -134,8 +146,11 @@ package views
 		private function drawCircle():void
 		{
 			_circle = new UIComponent;
-			_circle.graphics.beginFill(0xFFCC00);
+			//_circle.graphics.beginFill(backgroundColor);
+			_circle.graphics.beginGradientFill(GradientType.LINEAR, colors,
+			    [1,1], [1, 255], gradMatrix);
 			_circle.graphics.drawCircle(0, 0, 40);
+			_circle.graphics.endFill();
 			addChild(_circle);
 		}
 		
@@ -144,7 +159,7 @@ package views
 			var t:TextField = new TextField();
 			t.text = hostname;
 			// set the contents before textformat
-			var format:TextFormat = new TextFormat("Arial", 20, 0x0000000);
+			var format:TextFormat = new TextFormat("Arial", 12, 0x0000000);
 			t.setTextFormat(format);
 			addChild(t);
 		}

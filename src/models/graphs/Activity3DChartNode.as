@@ -3,6 +3,8 @@ package models.graphs
 	import org.papervision3d.core.proto.MaterialObject3D;
 	import org.papervision3d.materials.ColorMaterial;
 	import org.papervision3d.objects.DisplayObject3D;
+	import views.Slider;
+	import views.TerminalPanelView;
 	
 	public class Activity3DChartNode
 	{
@@ -35,6 +37,7 @@ package models.graphs
 			highlightMaterial = new MaterialsList();
 			highlightMaterial.addMaterial(colorMaterial, "all");
 			*/
+			colorMaterial.interactive = true;
 			highlightMaterial = new ColorMaterial(color);
 		}
 		
@@ -58,6 +61,12 @@ package models.graphs
 				node.resetMaterial();
 			}
 			changedNodes.length = 0;
+		}
+		
+		public function showPanel(time:Number):void
+		{
+			TerminalPanelView.showPanel(hostName);
+			Slider.seekByTime(time);
 		}
 	}
 }

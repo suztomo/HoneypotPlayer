@@ -1,9 +1,12 @@
 package controllers
 {
+	import com.dncompute.graphics.GraphicsUtil;
+	
 	import flash.display.CapsStyle;
 	import flash.display.JointStyle;
 	import flash.display.LineScaleMode;
 	import flash.events.TimerEvent;
+	import flash.geom.Point;
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	
@@ -12,6 +15,8 @@ package controllers
 	
 	import views.TerminalPanelView;
 	import views.TerminalViewNode;
+			
+			
 	
 	/**
 	 * This class manages TerminalViewer and objects on it,  e.g., views.Host class.
@@ -37,6 +42,8 @@ package controllers
 		public var centerX:Number = 400;
 		public var centerY:Number = 300;
 		public var gradScale:Number = 0.8;
+		public static var LINE_COLOR:uint = 0xFF3300;
+		public static var LINE_DELAY:Number = 2000; // milliseconds
 		
 		
 		/*
@@ -53,8 +60,8 @@ package controllers
 			hosts = new Object();
 			_lineScreen = new UIComponent();
 			_hostScreen = new UIComponent();
-			screen.addChild(_lineScreen); // lines in background
 			screen.addChild(_hostScreen);
+			screen.addChild(_lineScreen);
 			_terminalPanelCanvas = terminalPanelCanvas;
 			
 			hostsArray = new Array;
@@ -124,19 +131,7 @@ package controllers
 		{
 			var h1:TerminalViewNode = findHost(from_host);
 			var h2:TerminalViewNode = findHost(to_host);
-			
-			var l:UIComponent = new UIComponent();
-			l.graphics.lineStyle(10, 0xFF1493, 1, false, LineScaleMode.VERTICAL,
-                               CapsStyle.NONE, JointStyle.MITER, 10);
-			l.graphics.moveTo(h1.x, h1.y);
-			l.graphics.lineTo(h2.x, h2.y);
-			l.graphics.endFill();
-			_lineScreen.addChild(l);
-			var t:Timer = new Timer(3000, 1);
-			t.addEventListener(TimerEvent.TIMER, function ():void {
-				_lineScreen.removeChild(l);
-			});
-			t.start();
+			drawLine(h1.x, h1.y, h2.x, h2.y);
 		}
 		
 		
@@ -186,11 +181,35 @@ package controllers
 				var o:Number = 2 * Math.PI / hostCount;
 				for each (hn in hostsArray) {
 					h = hosts[hn];
-					h.moveWidthEffect(R * Math.cos(o * i) + centerX, R * Math.sin(o * i) + centerY);
-					h.scale = gradScale * Math.sin(Math.PI / hostCount);
+					h.move(R * Math.cos(o * i) + centerX, R * Math.sin(o * i) + centerY);
+					h.scale = gradScale * R * Math.sin(Math.PI / hostCount) / 40.0;
 					i++;
 				}
 			}
+		}
+		
+		
+		private function drawLine(fromX:Number, fromY:Number, toX:Number, toY:Number):void
+		{
+			var l:UIComponent = new UIComponent;
+			l.graphics.lineStyle(10, LINE_COLOR, 1, false, LineScaleMode.VERTICAL,
+								 CapsStyle.NONE, JointStyle.MITER, 10);
+			l.graphics.beginFill(LINE_COLOR);
+			GraphicsUtil.drawArrow(l.graphics,
+				new Point(fromX, fromY),new Point(toX, toY),
+				{shaftThickness:1,headWidth:14,headLength:12,
+				shaftPosition:.16,edgeControlPosition:.60}
+			);
+		/*
+			l.graphics.moveTo(fromX, fromY);
+			l.graphics.lineTo(toX, toY);*/
+			l.graphics.endFill();
+			_lineScreen.addChild(l);
+			var t:Timer = new Timer(LINE_DELAY, 1);
+			t.addEventListener(TimerEvent.TIMER, function () :void{
+				_lineScreen.removeChild(l);
+			});
+			t.start();
 		}
 		
 		public function flushAllBuffers():void

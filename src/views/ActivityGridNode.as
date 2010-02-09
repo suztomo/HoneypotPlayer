@@ -2,7 +2,9 @@ package views
 {
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
+	import flash.geom.Matrix;
 	import flash.utils.Timer;
+	import flash.display.*;
 	
 	import mx.core.UIComponent;
 	import mx.core.UITextField;
@@ -26,6 +28,9 @@ package views
 		private var _infoTimer:Timer;
 		private var _info:UIComponent;
 		private var _infoCanvas:UIComponent;
+		
+		private var _gradMatrix:Matrix = new Matrix;
+		private var _colors:Array = [0x32CD32, 0x52ED52];
 		
 		public function ActivityGridNode(name:String, addr:String,
 										 terminalPanelCanvas:TerminalPanelView,
@@ -58,7 +63,8 @@ package views
 		
 		private function onClick(event:MouseEvent):void
 		{
-			_terminalPanelCanvas.showPanel(_name);
+			TerminalPanelView.showPanel(_name);
+//			_terminalPanelCanvas.showPanel(_name);
 		}
 		
 		private function onMouseMove(event:MouseEvent):void
@@ -73,8 +79,14 @@ package views
 		
 		public function drawSquare(color:uint):void
 		{
-			graphics.beginFill(color);
-			graphics.drawRect(-50, -50, 100, 100);
+			//graphics.beginFill(color);
+			_gradMatrix.createGradientBox(20, 20, 0, 0, 0);
+			_colors[0] = color;
+			_gradMatrix.rotate(Math.PI/6 + Math.PI);
+			graphics.beginGradientFill(GradientType.LINEAR, _colors, [1.0, 1.0], [0, 255],
+			 						   _gradMatrix);
+			graphics.drawRoundRect(-50, -50, 100, 100, 10, 10);
+			graphics.endFill();
 		}
 		
 		public function highLight():void

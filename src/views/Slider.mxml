@@ -2,6 +2,7 @@
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
  horizontalAlign="center"
  width="100%"
+ creationComplete="onCreationComplete();"
  >
 	
 	<mx:Metadata>
@@ -31,16 +32,17 @@
 			public static const LABEL_PLAY:String = "play";
 			public static const LABEL_STOP:String = "stop";
 			
-			public var _total:Number = -1;;
+			public var _total:Number = -1;
+			
+			private static var firstInstance:Slider;
 			
 			/*
 				This MXML dispatches SliderSeekEvent.
 			*/
 			private function onCreationComplete():void
 			{
-				setCurrentState("Realtime");
-				
-				
+				firstInstance = this;
+				trace(firstInstance);
 			}
 			
 			public function get value():Number
@@ -71,6 +73,11 @@
 			{
 				_total = Math.ceil(value);
 				totalTime.text = numberPrintf(_total); 
+			}
+			
+			public function get total():Number
+			{
+				return _total;				
 			}
 			
 			private function numberPrintf(msec:Number):String
@@ -156,6 +163,7 @@
 				var newv:Number = slider.value + _percentagePerSpan;
 				seek(newv);
 				dispatchEvent(new Event("sliderProgress"));
+				
 			}
 			
 			/*
@@ -169,6 +177,16 @@
 				}
 				slider.value = value;
 				currentTime.text = numberPrintf(_total * value / 100);
+			}
+						
+			public static function seekByTime(time:Number):void // millliseconds
+			{
+				if (firstInstance == null) {
+					Logger.log("not yet / Slider");
+					return;
+				}
+				firstInstance.seek(time * 100.0 / firstInstance._total);
+				firstInstance.sliderChanged();
 			}
 			
 			private function playToggle():void

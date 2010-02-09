@@ -4,10 +4,12 @@ This panel holds several terminals on it.
 and addChilded by TerminalView.terminalPanelCanvas.
 -->
 
-<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="100%" height="100%"
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
     minWidth="700"
 	title="TerminalPanel" creationComplete="onCreationComplete();" visible="false"
-	paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10">
+	paddingTop="10" paddingLeft="10" paddingRight="10" paddingBottom="10"
+	width="60%" height="70%"
+	>
 	<mx:Script>
 	<![CDATA[
 		import mx.controls.Button;
@@ -29,6 +31,8 @@ and addChilded by TerminalView.terminalPanelCanvas.
 			tab2Terminal = new Object;
 			tab2Timer = new Object;*/
 			b.x = this.width - b.width - 20;
+			
+			addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
 		}
 		
 		public function addTerminal(terminal:Terminal):void
@@ -85,6 +89,27 @@ and addChilded by TerminalView.terminalPanelCanvas.
 			t.start();
 		}
 		
+		public function onMouseDown(event:MouseEvent):void
+		{
+			addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
+			addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+			startX = event.localX;
+			startY = event.localY;
+		}
+		
+		private var startX:Number;
+		private var startY:Number;
+		public function onMouseMove(event:MouseEvent):void
+		{
+			x += (event.localX - startX);
+			y += (event.localY - startY);
+		}
+		
+		private function onMouseUp(event:MouseEvent):void
+		{
+			removeEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
+		}
+		
 		public function off():void
 		{
 			this.visible = false;
@@ -106,7 +131,7 @@ and addChilded by TerminalView.terminalPanelCanvas.
 	<mx:VBox>
 		<mx:Label text="{hostname}" fontSize="20" />
 		<mx:HBox>
-			<mx:HBox id="tabBox" width="90%" height="50" />
+			<mx:HBox id="tabBox" minWidth="400" height="50" width="70%" />
 		</mx:HBox>
 		<mx:Canvas id="terminalCanvas" />	
 	</mx:VBox>

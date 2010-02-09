@@ -4,7 +4,10 @@
 	<mx:Script>
 		<![CDATA[
 		
-		private var terminals:Object;
+		import models.utils.Logger;
+		
+		private static var terminals:Object;
+		
 		
 		private function onCreationComplete():void
 		{
@@ -28,15 +31,26 @@
 			terminal.y = 20;
 			addChild(terminal);
 		}
-		
+		/*
 		public function showPanel(hostname:String):void
 		{
 			var t:TerminalPanel;
 			t = findTerminal(hostname);
 			t.on();
 		}
+		*/
 		
-		public function findTerminal(hostname:String):TerminalPanel
+		public static function showPanel(hostname:String):void
+		{
+			if (terminals == null) {
+				Logger.log("not yet panel / TerminalPanelView");
+				return;
+			}
+			var t:TerminalPanel = findTerminal(hostname);
+			t.on();
+		}
+		
+		public static function findTerminal(hostname:String):TerminalPanel
 		{
 			var t:TerminalPanel;
 			t = terminals[hostname];
